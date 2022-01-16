@@ -1,0 +1,17 @@
+<launch>
+    <!-- Arguments -->
+    <arg name='use_rviz' default="true" doc="Set true to launch rviz."/>
+    <arg name='use_jsp' default="false" doc="Set true to publish joint states."/>
+
+    <!-- Load urdf in parameter server-->
+    <param name="robot_description" command="xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro"/>
+
+    <!-- Open Rviz-->
+    <node pkg="rviz" type="rviz" name="rviz" required="true" if="$(arg use_rviz)"
+        args="-d $(find nuturtle_description)/config/basic.rviz"/>
+
+    <!-- Publish Join States-->
+    <node pkg="joint_state_publisher" type="joint_state_publisher" 
+        name="joint_state_publisher" if="$(arg use_jsp)"/>
+
+</launch>

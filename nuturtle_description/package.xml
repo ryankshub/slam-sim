@@ -2,7 +2,7 @@
 <package format="2">
   <name>nuturtle_description</name>
   <version>0.0.3</version>
-  <description>A package containing urdf files and basic debugging, testing, 
+  <description>Contains urdf files and basic debugging, testing, 
   and visualization code for the robots</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
