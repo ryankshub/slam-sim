@@ -2,20 +2,22 @@
     <!-- Arguments -->
     <arg name='use_rviz' default="true" doc="Set true to launch rviz."/>
     <arg name='use_jsp' default="false" doc="Set true to publish joint states."/>
-
+    <arg name='color' default='black' doc="The robot's color; the options red, green, blue, and black."/>
     <!-- Load params -->
     <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
-    
-    <!-- Load urdf in parameter server-->
-    <param name="robot_description" command="xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro"/>
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
-    <!-- Open Rviz-->
-    <node pkg="rviz" type="rviz" name="rviz" required="true" if="$(arg use_rviz)"
-        args="-d $(find nuturtle_description)/config/basic.rviz"/>
+    <group ns="$(arg color)">
+        <!-- Load urdf in parameter server-->
+        <param name="robot_description" 
+            command="xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:='$(arg color)'"/>
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
-    <!-- Publish Join States-->
-    <node pkg="joint_state_publisher" type="joint_state_publisher" 
-        name="joint_state_publisher" if="$(arg use_jsp)"/>
+        <!-- Open Rviz-->
+        <node pkg="rviz" type="rviz" name="rviz" required="true" if="$(arg use_rviz)"
+            args="-d $(find nuturtle_description)/config/basic.rviz -f $(arg color)-base_footprint"/>
 
+        <!-- Publish Join States-->
+        <node pkg="joint_state_publisher" type="joint_state_publisher" 
+            name="joint_state_publisher" if="$(arg use_jsp)"/>
+    </group>
 </launch>
