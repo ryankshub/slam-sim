@@ -3,10 +3,12 @@
     <arg name='use_rviz' default="true" doc="Set true to launch rviz."/>
     <arg name='use_jsp' default="false" doc="Set true to publish joint states."/>
     <arg name='color' default='black' doc="The robot's color; the options red, green, blue, and black."/>
-    <!-- Load params -->
-    <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
-
+  
     <group ns="$(arg color)">
+
+        <!-- Load params -->
+        <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
+
         <!-- Load urdf in parameter server-->
         <param name="robot_description" 
             command="xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:='$(arg color)'"/>

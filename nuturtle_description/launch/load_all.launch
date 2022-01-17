@@ -1,0 +1,44 @@
+<launch>
+    <!--Includes -->
+    <!--Color Red-->
+    <include file="$(find nuturtle_description)/launch/load.launch">
+        <arg name='use_rviz' value='false'/>
+        <arg name='use_jsp' value='true'/>
+        <arg name='color' value='red'/>
+    </include>
+
+    <!--Color Blue-->
+    <include file="$(find nuturtle_description)/launch/load.launch">
+        <arg name='use_rviz' value='false'/>
+        <arg name='use_jsp' value='true'/>
+        <arg name='color' value='blue'/>
+    </include>
+
+    <!--Color Green-->
+    <include file="$(find nuturtle_description)/launch/load.launch">
+        <arg name='use_rviz' value='false'/>
+        <arg name='use_jsp' value='true'/>
+        <arg name='color' value='green'/>
+    </include>
+
+    <!--Color Black-->
+    <include file="$(find nuturtle_description)/launch/load.launch">
+        <arg name='use_rviz' value='false'/>
+        <arg name='use_jsp' value='true'/>
+        <arg name='color' value='black'/>
+    </include>
+
+    <!-- Open Rviz-->
+    <node pkg="rviz" type="rviz" name="rviz" required="true"
+        args="-d $(find nuturtle_description)/config/basic_all.rviz -f world"/>
+
+    <!--Static broadcasters-->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="red_broadcaster" 
+        args="1 0 0 0 0 0 1 world red-base_footprint" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="blue_broadcaster" 
+        args="0 1 0 0 0 0 1 world blue-base_footprint" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="green_broadcaster" 
+        args="-1 0 0 0 0 0 1 world green-base_footprint" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="black_broadcaster" 
+        args="0 -1 0 0 0 0 1 world black-base_footprint" />
+</launch>
