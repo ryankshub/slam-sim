@@ -3,8 +3,12 @@
     <arg name='use_rviz' default="true" doc="Set true to launch rviz."/>
     <arg name='use_jsp' default="false" doc="Set true to publish joint states."/>
 
+    <!-- Load params -->
+    <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
+    
     <!-- Load urdf in parameter server-->
     <param name="robot_description" command="xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro"/>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
     <!-- Open Rviz-->
     <node pkg="rviz" type="rviz" name="rviz" required="true" if="$(arg use_rviz)"
