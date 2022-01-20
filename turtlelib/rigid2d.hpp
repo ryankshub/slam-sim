@@ -107,76 +107,79 @@ namespace turtlelib
     /// get removes the next unprocessed character from the buffer.
     std::istream & operator>>(std::istream & is, Vector2D & v);
 
-//     /// \brief a rigid body transformation in 2 dimensions
-//     class Transform2D
-//     {
-//     public:
-//         /// \brief Create an identity transformation
-//         Transform2D();
+    /// \brief a rigid body transformation in 2 dimensions
+    class Transform2D
+    {
+    public:
+        /// \brief Create an identity transformation
+        Transform2D();
 
-//         /// \brief create a transformation that is a pure translation
-//         /// \param trans - the vector by which to translate
-//         explicit Transform2D(Vector2D trans);
+        /// \brief create a transformation that is a pure translation
+        /// \param trans - the vector by which to translate
+        explicit Transform2D(Vector2D trans);
 
-//         /// \brief create a pure rotation
-//         /// \param radians - angle of the rotation, in radians
-//         explicit Transform2D(double radians);
+        /// \brief create a pure rotation
+        /// \param radians - angle of the rotation, in radians
+        explicit Transform2D(double radians);
 
-//         /// \brief Create a transformation with a translational and rotational
-//         /// component
-//         /// \param trans - the translation
-//         /// \param rot - the rotation, in radians
-//         Transform2D(Vector2D trans, double radians);
+        /// \brief Create a transformation with a translational and rotational
+        /// component
+        /// \param trans - the translation
+        /// \param rot - the rotation, in radians
+        Transform2D(Vector2D trans, double radians);
 
-//         /// \brief apply a transformation to a Vector2D
-//         /// \param v - the vector to transform
-//         /// \return a vector in the new coordinate system
-//         Vector2D operator()(Vector2D v) const;
-
-
-//         /// \brief invert the transformation
-//         /// \return the inverse transformation. 
-//         Transform2D inv() const;
-
-//         /// \brief compose this transform with another and store the result 
-//         /// in this object
-//         /// \param rhs - the first transform to apply
-//         /// \return a reference to the newly transformed operator
-//         Transform2D & operator*=(const Transform2D & rhs);
-
-//         /// \brief the translational component of the transform
-//         /// \return the x,y translation
-//         Vector2D translation() const;
-
-//         /// \brief get the angular displacement of the transform
-//         /// \return the angular displacement, in radians
-//         double rotation() const;
-
-//         /// \brief \see operator<<(...) (declared outside this class)
-//         /// for a description
-//         friend std::ostream & operator<<(std::ostream & os, const Transform2D & tf);
-
-//     };
+        /// \brief apply a transformation to a Vector2D
+        /// \param v - the vector to transform
+        /// \return a vector in the new coordinate system
+        Vector2D operator()(Vector2D v) const;
 
 
-//     /// \brief should print a human readable version of the transform:
-//     /// An example output:
-//     /// deg: 90 x: 3 y: 5
-//     /// \param os - an output stream
-//     /// \param tf - the transform to print
-//     std::ostream & operator<<(std::ostream & os, const Transform2D & tf);
+        /// \brief invert the transformation
+        /// \return the inverse transformation. 
+        Transform2D inv() const;
 
-//     /// \brief Read a transformation from stdin
-//     /// Should be able to read input either as output by operator<< or
-//     /// as 3 numbers (degrees, dx, dy) separated by spaces or newlines
-//     std::istream & operator>>(std::istream & is, Transform2D & tf);
+        /// \brief compose this transform with another and store the result 
+        /// in this object
+        /// \param rhs - the first transform to apply
+        /// \return a reference to the newly transformed operator
+        Transform2D & operator*=(const Transform2D & rhs);
 
-//     /// \brief multiply two transforms together, returning their composition
-//     /// \param lhs - the left hand operand
-//     /// \param rhs - the right hand operand
-//     /// \return the composition of the two transforms
-//     /// HINT: This function should be implemented in terms of *=
-//     Transform2D operator*(Transform2D lhs, const Transform2D & rhs);
+        /// \brief the translational component of the transform
+        /// \return the x,y translation
+        Vector2D translation() const;
+
+        /// \brief get the angular displacement of the transform
+        /// \return the angular displacement, in radians
+        double rotation() const;
+
+        /// \brief \see operator<<(...) (declared outside this class)
+        /// for a description
+        friend std::ostream & operator<<(std::ostream & os, const Transform2D & tf);
+    private:
+        Vector2D mVec;
+        double mAng_rad;
+        bool mInv;
+    };
+
+
+    /// \brief should print a human readable version of the transform:
+    /// An example output:
+    /// deg: 90 x: 3 y: 5
+    /// \param os - an output stream
+    /// \param tf - the transform to print
+    std::ostream & operator<<(std::ostream & os, const Transform2D & tf);
+
+    /// \brief Read a transformation from stdin
+    /// Should be able to read input either as output by operator<< or
+    /// as 3 numbers (degrees, dx, dy) separated by spaces or newlines
+    std::istream & operator>>(std::istream & is, Transform2D & tf);
+
+    /// \brief multiply two transforms together, returning their composition
+    /// \param lhs - the left hand operand
+    /// \param rhs - the right hand operand
+    /// \return the composition of the two transforms
+    /// HINT: This function should be implemented in terms of *=
+    Transform2D operator*(Transform2D lhs, const Transform2D & rhs);
 
 
 
