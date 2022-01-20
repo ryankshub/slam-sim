@@ -182,8 +182,8 @@ namespace turtlelib
     Transform2D & Transform2D::operator*=(const Transform2D & rhs)
     {
         double new_ang = mAng_rad + rhs.mAng_rad;
-        double new_x = std::cos(mAng_rad)*rhs.mVec.x + std::sin(mAng_rad)*rhs.mVec.y + mVec.x;
-        double new_y = -std::sin(mAng_rad)*rhs.mVec.x + std::cos(mAng_rad)*rhs.mVec.y + mVec.y;
+        double new_x = std::cos(mAng_rad)*rhs.mVec.x - std::sin(mAng_rad)*rhs.mVec.y + mVec.x;
+        double new_y = std::sin(mAng_rad)*rhs.mVec.x + std::cos(mAng_rad)*rhs.mVec.y + mVec.y;
 
         mAng_rad = new_ang;
         mVec.x = new_x;
