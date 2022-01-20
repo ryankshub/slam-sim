@@ -53,7 +53,15 @@ namespace turtlelib
         return is;
     }
 
-    //TODO NORMALIZE VECTOR FUNCTION
+    //Normalize Vector function
+    Vector2D normalize(const Vector2D & v)
+    {
+        double mag = std::sqrt(pow(v.x,2.0) + pow(v.y,2.0));
+        Vector2D vec; 
+        vec.x = v.x/mag;
+        vec.y = v.y/mag;
+        return vec;
+    }
 
     ///////////////// TWIST 2D ////////////////////
 
@@ -147,6 +155,16 @@ namespace turtlelib
         new_vec.x = (v.x*std::cos(mAng_rad)) - (v.y*std::sin(mAng_rad)) + mVec.x;
         new_vec.y = (v.x*std::sin(mAng_rad)) + (v.y*std::cos(mAng_rad)) + mVec.y;
         return new_vec;
+    }
+
+    //Apply adjoint to twist
+    Twist2D Transform2D::operator()(const Twist2D & t) const
+    {
+        Twist2D new_twist;
+        new_twist.theta_dot = t.theta_dot;
+        new_twist.x_dot = mVec.y*t.theta_dot + std::cos(mAng_rad)*t.x_dot - std::sin(mAng_rad)*t.y_dot;
+        new_twist.y_dot = -mVec.x*t.theta_dot + std::sin(mAng_rad)*t.x_dot + std::cos(mAng_rad)*t.y_dot;
+        return new_twist;
     }
 
     //Return inverse of transform

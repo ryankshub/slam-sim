@@ -107,9 +107,9 @@ namespace turtlelib
     std::istream & operator>>(std::istream & is, Vector2D & v);
 
     /// \brief produce normalize version of a vector
-    /// \param t - vector to normalize
+    /// \param v - vector to normalize
     /// \return normalized version of the vector
-    Vector2D normalize(const Vector2D & t);
+    Vector2D normalize(const Vector2D & v);
 
 
     /// \brief a twist (velocity representation)
