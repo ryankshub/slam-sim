@@ -5,15 +5,16 @@
 
 namespace turtlelib
 {
+    /////////////////// VECTOR2D SECTION ////////////////
 
-    //overloading ostream
+    //Printing function for Vector2D
     std::ostream & operator<<(std::ostream & os, const Vector2D & v)
     {
-        os << "Vector: X " << v.x << " Y " << v.y;
+        os << "[" << v.x << " " << v.y << "]";
         return os;
     }
 
-    //over istream 
+    //Read function for Vector2D
     std::istream & operator>>(std::istream & is, Vector2D & v)
     {
         //Read from the input stream
@@ -52,6 +53,65 @@ namespace turtlelib
         return is;
     }
 
+    //TODO NORMALIZE VECTOR FUNCTION
+
+    ///////////////// TWIST 2D ////////////////////
+
+    //Print function for Twist2D
+    std::ostream & operator<<(std::ostream & os, Twist2D & t)
+    {
+        std::cout << "[" << t.theta_dot;
+        std::cout << " " << t.x_dot;
+        std::cout << " " << t.y_dot;
+        std::cout << "]";
+        return os;
+    }
+
+    //Read function for Twist2D
+    std::istream & operator>>(std::istream & is, Twist2D & t)
+    {
+        //Read from the input stream
+        std::string user_input;
+        std::getline(std::cin, user_input);
+
+        //Check for bracket syntax
+        if (user_input.front() == '[')
+        {
+            if (user_input.back() != ']')
+            {
+                std::cout << "Improper Format: ";
+                std::cout << "Format doubles as [t x y] or t x y" << std::endl;
+                return is;
+            } else {
+                user_input.erase(0,1);
+                user_input.pop_back();
+            }
+        }
+
+        //Attempt to convert to a double.
+        try 
+        {
+            std::string theta_str = user_input.substr(0, user_input.find(" "));
+            user_input.erase(0, user_input.find(" ")+1);
+            std::string x_str = user_input.substr(0, user_input.find(" "));
+            std::string y_str = user_input.substr(user_input.find(" "));
+            double theta_dot = std::stod(theta_str);
+            double x_dot = std::stod(x_str);
+            double y_dot = std::stod(y_str);
+            t.theta_dot = theta_dot;
+            t.x_dot = x_dot;
+            t.y_dot = y_dot;
+        } catch (const std::exception& e) {
+            std::cout << e.what() << std::endl;
+            std::cout << "Improper Format: ";
+            std::cout << "Format doubles as [t x y] or t x y" << std::endl;
+        }
+
+        return is;
+    }
+
+
+    ////////////// TRANSFORM2D SECTION //////////////////
     //Transform2D Identity 
     Transform2D::Transform2D() 
         : mVec()

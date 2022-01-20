@@ -81,17 +81,16 @@ namespace turtlelib
     };
 
 
-
     /// \brief output a 2 dimensional vector as [xcomponent ycomponent]
-    /// os - stream to output to
-    /// v - the vector to print
+    /// \param os - stream to output to
+    /// \param v - the vector to print
     std::ostream & operator<<(std::ostream & os, const Vector2D & v);
 
     /// \brief input a 2 dimensional vector
     ///   You should be able to read vectors entered as follows:
     ///   [x y] or x y
-    /// is - stream from which to read
-    /// v [out] - output vector
+    /// \param is - stream from which to read
+    /// \param v [out] - output vector
     /// Hint: The following may be useful:
     /// https://en.cppreference.com/w/cpp/io/basic_istream/peek
     /// https://en.cppreference.com/w/cpp/io/basic_istream/get
@@ -106,6 +105,37 @@ namespace turtlelib
     /// peek looks at the next unprocessed character in the buffer without removing it
     /// get removes the next unprocessed character from the buffer.
     std::istream & operator>>(std::istream & is, Vector2D & v);
+
+    /// \brief produce normalize version of a vector
+    /// \param t - vector to normalize
+    /// \return normalized version of the vector
+    Vector2D normalize(const Vector2D & t);
+
+
+    /// \brief a twist (velocity representation)
+    struct Twist2D
+    {
+        /// \brief Rotational velocity 
+        double theta_dot = 0.0;
+
+        /// \brief Velocity in the x-axis
+        double x_dot = 0.0;
+
+        /// \brief Velocity in the y-axis
+        double y_dot = 0.0;
+    };
+
+    /// \brief Print a 2D twist
+    /// \param os - stream to output ot
+    /// \param t - twist to print out
+    std::ostream & operator<<(std::ostream & os, Twist2D & t);
+
+    /// \brief input a 2 dimensional twist 
+    ///        Format should be [theta x y] or theta x y
+    /// \param is - stream from which to read
+    /// \param t [out] - output twist
+    std::istream & operator>>(std::istream & is, Twist2D & t);
+
 
     /// \brief a rigid body transformation in 2 dimensions
     class Transform2D
@@ -133,6 +163,10 @@ namespace turtlelib
         /// \return a vector in the new coordinate system
         Vector2D operator()(Vector2D v) const;
 
+        /// \brief apply the adjunct to change the twist's frame
+        /// \param t - the twist to transform
+        /// \return a twist in the new coordinate system
+        Twist2D operator()(const Twist2D & t) const;
 
         /// \brief invert the transformation
         /// \return the inverse transformation. 
