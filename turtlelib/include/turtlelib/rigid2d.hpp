@@ -192,7 +192,6 @@ namespace turtlelib
     private:
         Vector2D mVec;
         double mAng_rad;
-        bool mInv;
     };
 
 
