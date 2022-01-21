@@ -4,7 +4,7 @@
 
 #define CATCH_CONFIG_MAIN //Tells Catch to provide a main()-only do in one cpp
 #include "catch.hpp"
-#include "include/rigid2d.hpp"
+#include "turtlelib/rigid2d.hpp"
 #include <cmath>
 
 using namespace turtlelib;
