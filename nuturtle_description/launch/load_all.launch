@@ -1,3 +1,4 @@
+<!-- Launch file spwans 4 different color robots in rviz-->
 <launch>
     <!--Includes -->
     <!--Color Red-->

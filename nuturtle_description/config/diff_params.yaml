@@ -1,2 +1,3 @@
-wheel_radius: 0.033
-track_width: 0.16
+# Parameters for wheel axel of the turtle robot
+wheel_radius: 0.033 # Radius of wheel (m)
+track_width: 0.16 # Distance between wheels (m)

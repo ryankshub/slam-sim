@@ -1,3 +1,4 @@
+<!-- Launch file spawns single robot in rviz-->
 <launch>
     <!-- Arguments -->
     <arg name='use_rviz' default="true" doc="Set true to launch rviz."/>
