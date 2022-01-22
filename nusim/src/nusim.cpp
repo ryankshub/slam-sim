@@ -72,6 +72,12 @@ static std::vector<double> obs_y;
 static double obs_radius; 
 
 //Nusim Node's callbacks
+
+/// \brief Callback fcn for reset service. Reset simulation
+///
+/// \param req - Empty Request
+/// \param res - Empty Response 
+/// \returns true if service completes successfully
 bool reset(std_srvs::Empty::Request &req,
            std_srvs::Empty::Response &res)
 {
@@ -82,6 +88,11 @@ bool reset(std_srvs::Empty::Request &req,
     return true;
 }
 
+/// \brief Callback fcn teleport service. Teleports robot
+///
+/// \param req - Teleport Request
+/// \param res - Teleport Response 
+/// \returns true if service completes successfully
 bool teleport(nusim::Teleport::Request &req,
               nusim::Teleport::Response &res)
 {
