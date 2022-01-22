@@ -36,7 +36,7 @@ static const double DEFAULT_X = 0.0;
 static const double DEFAULT_Y = 0.0;
 static const double DEFAULT_THETA = 0.0;
 static const double DEFAULT_RADIUS = 0.0;
-static const std::vector<int> DEFAULT_OBS_LIST;
+static const std::vector<double> DEFAULT_OBS_LIST;
 static const double CYLINDER_HEIGHT = 0.25;
 
 // Nusim Node's variables
@@ -49,8 +49,8 @@ static double y;
 static double y_init;
 static double theta;
 static double theta_init;
-static std::vector<int> obs_x;
-static std::vector<int> obs_y;
+static std::vector<double> obs_x;
+static std::vector<double> obs_y;
 static double obs_radius; 
 
 //Nusim Node's callbacks
@@ -110,7 +110,6 @@ int main(int argc, char *argv[])
     joint_states.name.push_back("red-wheel_right_joint");
     joint_states.position.push_back(0.0);
     joint_states.position.push_back(0.0);
-    joint_states.header.frame_id = "base_footprint";
 
     //Publish Markers
     visualization_msgs::MarkerArray cylinders;
@@ -126,7 +125,7 @@ int main(int argc, char *argv[])
             cylin.type = visualization_msgs::Marker::CYLINDER;
             cylin.action = visualization_msgs::Marker::ADD;
             cylin.pose.position.x = obs_x[i];
-            cylin.pose.position.y = obs_y[1];
+            cylin.pose.position.y = obs_y[i];
             cylin.pose.position.z = CYLINDER_HEIGHT/2.0;
             cylin.pose.orientation.x = 0.0;
             cylin.pose.orientation.y = 0.0;
@@ -151,11 +150,12 @@ int main(int argc, char *argv[])
     {
         //Update data
         timestep++; //this means we start at T = 1
+        joint_states.header.stamp = ros::Time::now();
 
         //Populate transform
         ts.header.stamp = ros::Time::now();
         ts.header.frame_id = "world";
-        ts.child_frame_id = "red:base_footprint";
+        ts.child_frame_id = "red-base_footprint";
         ts.transform.translation.x = x;
         ts.transform.translation.y = y;
         ts.transform.translation.z = 0.0;
