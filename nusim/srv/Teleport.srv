@@ -1,5 +1,8 @@
-//Teleport Service; teleport robot to x,y, theta
+# Request/Response for teleporting the robot
+# Transports the robot to x,y,theta
+
 float64 x
 float64 y
 float64 theta
 ---
+# Empty Response

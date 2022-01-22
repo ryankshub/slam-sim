@@ -15,14 +15,18 @@
 
 //C++ includes
 #include <cstdint>
+#include <vector>
 //3rd-party includes
 #include "geometry_msgs/TransformStamped.h"
+#include "nusim/Teleport.h"
 #include "ros/ros.h"
 #include "sensor_msgs/JointState.h"
 #include "std_msgs/UInt64.h"
 #include "std_srvs/Empty.h"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_ros/transform_broadcaster.h"
+#include "visualization_msgs/Marker.h"
+#include "visualization_msgs/MarkerArray.h"
 
 
 //Nusim's Constants
@@ -31,6 +35,9 @@ static const std::uint32_t QUEUE_SIZE = 1000;
 static const double DEFAULT_X = 0.0;
 static const double DEFAULT_Y = 0.0;
 static const double DEFAULT_THETA = 0.0;
+static const double DEFAULT_RADIUS = 0.0;
+static const std::vector<int> DEFAULT_OBS_LIST;
+static const double CYLINDER_HEIGHT = 0.25;
 
 // Nusim Node's variables
 static std::uint64_t timestep = 0;
@@ -42,6 +49,9 @@ static double y;
 static double y_init;
 static double theta;
 static double theta_init;
+static std::vector<int> obs_x;
+static std::vector<int> obs_y;
+static double obs_radius; 
 
 //Nusim Node's callbacks
 bool reset(std_srvs::Empty::Request &req,
@@ -51,6 +61,15 @@ bool reset(std_srvs::Empty::Request &req,
     x = x_init;
     y = y_init;
     theta = theta_init;
+    return true;
+}
+
+bool teleport(nusim::Teleport::Request &req,
+              nusim::Teleport::Response &res)
+{
+    x = req.x;
+    y = req.y;
+    theta = req.theta;
     return true;
 }
 
@@ -71,11 +90,16 @@ int main(int argc, char *argv[])
     x_init = x;
     y_init = y;
     theta_init = theta;
+    nh.param("obstacles/obs_x", obs_x, DEFAULT_OBS_LIST);
+    nh.param("obstacles/obs_y", obs_y, DEFAULT_OBS_LIST);
+    nh.param("obstacles/radius", obs_radius, DEFAULT_RADIUS);
 
     //Build ROS Objects
     const auto timestep_pub = nh.advertise<std_msgs::UInt64>("timestep", QUEUE_SIZE);
     const auto joint_state_pub = pub_nh.advertise<sensor_msgs::JointState>("red/joint_states", QUEUE_SIZE);
+    const auto cylinder_pub = nh.advertise<visualization_msgs::MarkerArray>("obstacles", QUEUE_SIZE, true);
     const auto reset_srv = nh.advertiseService("reset", reset);
+    const auto teleport_srv = nh.advertiseService("teleport", teleport);
     geometry_msgs::TransformStamped ts;
 
     //Set up Rate object
@@ -87,6 +111,40 @@ int main(int argc, char *argv[])
     joint_states.position.push_back(0.0);
     joint_states.position.push_back(0.0);
     joint_states.header.frame_id = "base_footprint";
+
+    //Publish Markers
+    visualization_msgs::MarkerArray cylinders;
+    if (obs_radius > 0.0 && obs_x.size() > 0.0 && obs_x.size() == obs_y.size())
+    {
+        for(int i=0;i < obs_x.size(); i++)
+        {
+            visualization_msgs::Marker cylin;
+            cylin.header.stamp = ros::Time::now();
+            cylin.header.frame_id = "world";
+            cylin.ns = "obstacles";
+            cylin.id = i;
+            cylin.type = visualization_msgs::Marker::CYLINDER;
+            cylin.action = visualization_msgs::Marker::ADD;
+            cylin.pose.position.x = obs_x[i];
+            cylin.pose.position.y = obs_y[1];
+            cylin.pose.position.z = CYLINDER_HEIGHT/2.0;
+            cylin.pose.orientation.x = 0.0;
+            cylin.pose.orientation.y = 0.0;
+            cylin.pose.orientation.z = 0.0;
+            cylin.pose.orientation.w = 1.0;
+            cylin.scale.x = obs_radius;
+            cylin.scale.y = obs_radius;
+            cylin.scale.z = CYLINDER_HEIGHT;
+            cylin.color.r = 1.0;
+            cylin.color.g = 0.0;
+            cylin.color.b = 0.0;
+            cylin.color.a = 1.0;
+
+            cylinders.markers.push_back(cylin);
+        }
+    }
+
+    cylinder_pub.publish(cylinders);
 
     //Main loop
     while(ros::ok())

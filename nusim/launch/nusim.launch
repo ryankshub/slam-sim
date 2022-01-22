@@ -1,0 +1,22 @@
+<!-- Launchfile for nusimulation-->
+<launch>
+    <!-- Arguments -->
+    <arg name='color' default='red' doc="The robot's color; the options red is only supported for now"/> 
+    <arg name='use_rviz' default="false" doc="Set true to launch rviz."/>
+    <arg name='use_jsp' default="false" doc="Set true to publish joint states."/>
+  
+    <!-- Load params -->
+    <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
+    <!-- Include files -->
+    <include file="$(find nuturtle_description)/launch/load.launch">
+        <
+    </include>
+    <!-- Load Simulator node-->
+    <node pkg="nusim" type="nusim" name="nusim"/>
+    <!-- Open Rviz-->
+    <node pkg="rviz" type="rviz" name="rviz" required="true"/>
+
+</launch>
+
+" if="$(arg use_rviz)"
+        args="-d $(find nuturtle_description)/config/basic.rviz -f $(arg color)-base_footprint"
