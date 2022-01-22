@@ -7,6 +7,8 @@ Simulation for testing various slam algorithms
     * Change `x0, y0, and theta0` to set the initial position of the robot. 
     * Under `obstacle` you can set a list of `obs_x` and `obs_y` to set the x,y position of cylinder obstacles for the robot to manuever around. Note: *these list must be the same length or no obstacles will appear*
     * You can control the radius of the obstacles by change `radius` under `obstacle`
+
+An example:
 ![nusim1](images/nusim1.png)
 
 ## Services
