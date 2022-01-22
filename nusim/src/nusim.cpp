@@ -2,13 +2,31 @@
 /// \brief The Nusim node maintains the state of the simulation
 ///
 /// PARAMETERS:
+///   private (parameter scoped to node name):
+///     rate (int): The running rate of the node (Hz)
+///     x0 (double): Initial x position of the robot (m)
+///     y0 (double): Initial y position of the robot (m)
+///     theta0 (double): Initial theta of the robot (rad)
+///     obstacles/obs_x: List of x position for cylinder obstacles (m)
+///     obstacles/obs_y: List of y position for cylinder obstacles (m)
+///     obstacles/radius: Radius of the cylinder obstacles (m)
 ///     parameter_name (parameter_type): description of the parameter
+///     
 /// PUBLISHES:
-///     topic_name (topic_type): description of topic
-/// SUBSCRIBES:
-///     topic_name (topic_type): description of the topic
+///     nusim/timestep (std_msgs::UInt64): The timestep of the simulation
+///     nusim/obstacles (visualization_msgs::MarkerArray): The list of cylinder Marker obstacles to 
+///         display in rviz
+///     red/jointes (sensor_msgs::JointState): The positions of the wheels on the robot. 
+///         Currently set to 0.
+/// BROADCASTER:
+///     broadcaster (non-static world to red-base_footprint): Transformation matrix from world frame
+///         to red-base_footprint frame
 /// SERVICES:
-///     service_name (service_type): description of the service
+///     reset (std_srvs::Empty): Call this service to reset the simulation's timestep and
+///         the position of the robot back to x0, y0, theta0
+///     teleport (nusim::Teleport): Given a x, y, and theta, this service will teleport 
+///         the robot to desired pose
+
 //RKS
 
 //Project include

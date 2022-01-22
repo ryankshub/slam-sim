@@ -1,10 +1,10 @@
 # Simulation parameters
 nusim:
-  x0: -0.6
-  y0: 0.8
-  theta0: 1.57
+  x0: -0.6       # Initial x of the robot(m)
+  y0: 0.8        # Initial y of the robot(m)
+  theta0: 1.57   # Initial theta of the robot (rad)
   # Cylinder specs
   obstacles:
-    obs_x: [-0.6, 0.6, 0.6]
-    obs_y: [-0.8, -0.8, 0.8]
-    radius: 0.038
+    obs_x: [-0.6, 0.6, 0.6]  #x position of the cylinders (m)
+    obs_y: [-0.8, -0.8, 0.8] #y position of the cylinders (m)
+    radius: 0.038            #radius of the cylinders (m)
