@@ -19,8 +19,7 @@ namespace turtlelib
     {
         //Read from the input stream
         std::string user_input;
-        std::getline(std::cin, user_input);
-
+        std::getline(is, user_input);
         //Check for bracket syntax
         if (user_input.front() == '[')
         {
@@ -68,10 +67,10 @@ namespace turtlelib
     //Print function for Twist2D
     std::ostream & operator<<(std::ostream & os, Twist2D & t)
     {
-        std::cout << "[" << t.theta_dot;
-        std::cout << " " << t.x_dot;
-        std::cout << " " << t.y_dot;
-        std::cout << "]";
+        os << "[" << t.theta_dot;
+        os << " " << t.x_dot;
+        os << " " << t.y_dot;
+        os << "]";
         return os;
     }
 
@@ -80,7 +79,7 @@ namespace turtlelib
     {
         //Read from the input stream
         std::string user_input;
-        std::getline(std::cin, user_input);
+        std::getline(is, user_input);
 
         //Check for bracket syntax
         if (user_input.front() == '[')
@@ -223,7 +222,7 @@ namespace turtlelib
                                      x_val
                                      y_val)";
         std::string user_input;
-        std::getline(std::cin, user_input);
+        std::getline(is, user_input);
 
         //Determine format
         int format_mode = -1;
@@ -244,8 +243,8 @@ namespace turtlelib
             case(0):
                 {
                     input_d = user_input;
-                    std::getline(std::cin, input_x);
-                    std::getline(std::cin, input_y);
+                    std::getline(is, input_x);
+                    std::getline(is, input_y);
                     break;
                 }
             
