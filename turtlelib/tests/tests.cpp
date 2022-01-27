@@ -2,8 +2,7 @@
 // This file test function in the turtlelib namespace
 // RKS
 
-#define CATCH_CONFIG_MAIN //Tells Catch to provide a main()-only do in one cpp
-#include "catch.hpp"
+#include "catch_ros/catch.hpp"
 #include "turtlelib/rigid2d.hpp"
 #include <cmath>
 #include <sstream>
