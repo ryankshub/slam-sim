@@ -1,12 +1,14 @@
 <?xml version="1.0" ?>
 <robot name="deluxe_burger" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:include filename="$(find nuturtle_description)/urdf/common_properties.xacro"/>
-  <!-- Get properties from arm.yaml configuration -->
+  <!-- Get properties from diff_params.yaml configuration -->
   <xacro:property name="params_yaml_file" value="$(find nuturtle_description)/config/diff_params.yaml"/>
   <xacro:property name="diff_params" value="${xacro.load_yaml(params_yaml_file)}"/>
-  <!-- Properties from arm.yaml -->
+  <!-- Properties from diff_params.yaml -->
   <xacro:property name="wheel_radius" value="${diff_params['wheel_radius']}"/>
   <xacro:property name="wheel_track" value="${diff_params['track_width']/2}"/>
+  <xacro:property name="collision_radius" value="${diff_params['collision_radius']}"/>
+
   <xacro:arg name="color" default="black"/>
 
   <link name="$(arg color)-base_footprint"/>
@@ -29,7 +31,12 @@
     <collision>
       <origin xyz="-0.032 0 0.070" rpy="0 0 0"/>
       <geometry>
-        <box size="0.140 0.140 0.143"/>
+        <xacro:if value="${collision_radius > 0}">
+          <cylinder length="0.143" radius="${collision_radius}"/>
+        </xacro:if>
+        <xacro:unless value="${collision_radius > 0}">
+          <box size="0.140 0.140 0.143"/>
+        </xacro:unless>
       </geometry>
     </collision>
 
