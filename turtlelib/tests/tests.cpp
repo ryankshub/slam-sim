@@ -10,6 +10,142 @@
 using namespace turtlelib;
 static const double EPSILON = 1.0e-12;
 
+////////////////// UTILITY FUNCTIONS /////
+
+/// normalize_angle tests
+/// TEST zero test normalize_angle 
+/// \brief Test normalizing 0
+TEST_CASE("normalize_angle zero test", "[normalize_angle]")
+{
+    // Unnormalize regular angle
+    double reg_ang = 0;
+    // Normalized angle
+    double ang_ans = 0;
+
+    double test_ang = normalize_angle(reg_ang);
+    REQUIRE(test_ang == Approx( ang_ans ).margin(EPSILON));
+}
+
+/// TEST limits test normalize_angle 
+/// \brief Test normalizing pi and -pi
+TEST_CASE("normalize_angle -pi/pi test", "[normalize_angle]")
+{
+    // Unnormalize regular angle
+    double pi_ang = PI;
+    double neg_pi_ang = -PI;
+    // Normalized angle
+    double ang_ans = PI;
+
+    double test1_ang = normalize_angle(pi_ang);
+    double test2_ang = normalize_angle(neg_pi_ang);
+    REQUIRE(test1_ang == Approx( ang_ans ).margin(EPSILON));
+    REQUIRE(test2_ang == Approx( ang_ans ).margin(EPSILON));
+}
+
+/// \brief Test normalizing 2*pi and -2*pi
+TEST_CASE("normalize_angle -2pi/2pi test", "[normalize_angle]")
+{
+    // Unnormalize regular angle
+    double pi_ang = 2.0*PI;
+    double neg_pi_ang = -2.0*PI;
+    // Normalized angle
+    double ang_ans = 0;
+
+    double test1_ang = normalize_angle(pi_ang);
+    double test2_ang = normalize_angle(neg_pi_ang);
+    REQUIRE(test1_ang == Approx( ang_ans ).margin(EPSILON));
+    REQUIRE(test2_ang == Approx( ang_ans ).margin(EPSILON));
+}
+
+/// \brief Test normalizing 3*pi
+TEST_CASE("normalize_angle 3pi test", "[normalize_angle]")
+{
+    // Unnormalize regular angle
+    double reg_ang = 3*PI;
+    // Normalized angle
+    double ang_ans = PI;
+
+    double test_ang = normalize_angle(reg_ang);
+    REQUIRE(test_ang == Approx( ang_ans ).margin(EPSILON));
+}
+
+/// TEST quadrants normalize_angle 
+/// \brief Test positive quadraints conversion
+TEST_CASE("normalize_angle positive quadrant test", "[normalize_angle]")
+{
+    // Unnormalize regular angle
+    double quad1_ang = PI/3.0;
+    double quad2_ang = (3.0*PI)/4.0;
+    double quad3_ang = (4.0*PI)/3.0;
+    double quad4_ang = (7.0*PI)/4.0;
+    // Normalized angle
+    double quad1_ans = PI/3.0;
+    double quad2_ans = (3.0*PI)/4.0;
+    double quad3_ans = -(2.0*PI)/3.0;
+    double quad4_ans = -PI/4.0;
+
+    double quad1_test = normalize_angle(quad1_ang);
+    double quad2_test = normalize_angle(quad2_ang);
+    double quad3_test = normalize_angle(quad3_ang);
+    double quad4_test = normalize_angle(quad4_ang);
+
+    REQUIRE(quad1_test == Approx( quad1_ans ).margin(EPSILON));
+    REQUIRE(quad2_test == Approx( quad2_ans ).margin(EPSILON));
+    REQUIRE(quad3_test == Approx( quad3_ans ).margin(EPSILON));
+    REQUIRE(quad4_test == Approx( quad4_ans ).margin(EPSILON));
+}
+ 
+/// \brief Test negative quadraints conversion
+TEST_CASE("normalize_angle negative quadraints test", "[normalize_angle]")
+{
+    // Unnormalize regular angle
+    double quad1_ang = -PI/3.0;
+    double quad2_ang = -(3.0*PI)/4.0;
+    double quad3_ang = -(4.0*PI)/3.0;
+    double quad4_ang = -(7.0*PI)/4.0;
+    // Normalized angle
+    double quad1_ans = -PI/3.0;
+    double quad2_ans = -(3.0*PI)/4.0;
+    double quad3_ans = (2.0*PI)/3.0;
+    double quad4_ans = PI/4.0;
+
+    double quad1_test = normalize_angle(quad1_ang);
+    double quad2_test = normalize_angle(quad2_ang);
+    double quad3_test = normalize_angle(quad3_ang);
+    double quad4_test = normalize_angle(quad4_ang);
+
+    REQUIRE(quad1_test == Approx( quad1_ans ).margin(EPSILON));
+    REQUIRE(quad2_test == Approx( quad2_ans ).margin(EPSILON));
+    REQUIRE(quad3_test == Approx( quad3_ans ).margin(EPSILON));
+    REQUIRE(quad4_test == Approx( quad4_ans ).margin(EPSILON));
+}
+
+/// TEST basic cases
+/// \brief Test 3PI/2
+TEST_CASE("normalize_angle 3pi/2 test", "[normalize_angle]")
+{
+    // Unnormalize regular angle
+    double reg_ang = (3.0*PI)/2.0;
+    // Normalized angle
+    double ang_ans = -PI/2.0;
+
+    double test_ang = normalize_angle(reg_ang);
+    REQUIRE(test_ang == Approx( ang_ans ).margin(EPSILON));
+}
+
+/// \brief Test -5PI/2
+TEST_CASE("normalize_angle -5pi/2 test", "[normalize_angle]")
+{
+    // Unnormalize regular angle
+    double reg_ang = -(5.0*PI)/2.0;
+    // Normalized angle
+    double ang_ans = -PI/2.0;
+
+    double test_ang = normalize_angle(reg_ang);
+    REQUIRE(test_ang == Approx( ang_ans ).margin(EPSILON));
+}
+
+
 ////////////////// VECTOR2D ////////////
 
 /// TEST Vector2D Read

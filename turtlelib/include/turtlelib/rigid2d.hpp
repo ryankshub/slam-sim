@@ -70,6 +70,12 @@ namespace turtlelib
 
     static_assert(almost_equal(rad2deg(deg2rad(2.1)), 2.1), "double conversion failed");
 
+    /// Utility functions
+    /// \brief Normalize the an input angle between (-pi,pi]
+    /// \param rad - angle in radians
+    /// \returns angle in range (-pi, pi]
+    double normalize_angle(double rad);
+
     /// \brief A 2-Dimensional Vector
     struct Vector2D
     {

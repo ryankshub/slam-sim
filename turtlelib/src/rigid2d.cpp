@@ -5,6 +5,24 @@
 
 namespace turtlelib
 {
+
+    /////////////////// UTILITY FUNCTION ////////////////
+    double normalize_angle(double rad)
+    {
+        double new_ang;
+        new_ang = fmod(rad + PI, 2*PI);
+        if (new_ang < 0)
+        {
+            new_ang += 2*PI;
+        }
+        new_ang -= PI;
+        if (almost_equal(new_ang, -PI))
+        {
+            return PI;
+        }
+        return new_ang;
+    }
+
     /////////////////// VECTOR2D SECTION ////////////////
 
     //Printing function for Vector2D
