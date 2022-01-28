@@ -84,8 +84,22 @@ namespace turtlelib
 
         /// \brief the y coordinate
         double y = 0.0;
-    };
 
+        /// \brief add the values of input vector into this vector
+        /// \param rhs - Vector who's values to add
+        /// \return - a reference to sum vector
+        Vector2D & operator+=(const Vector2D & rhs);
+
+        /// \brief subtract the values of input vector from this vector
+        /// \param rhs - Vector who's values to subtract
+        /// \return - a reference to difference vector
+        Vector2D & operator-=(const Vector2D & rhs);
+
+        /// \brief Multiply vector by scalar
+        /// \param rhs - Scalar multiple
+        /// \return - a reference to the scaled vector
+        Vector2D & operator*=(const double & rhs);
+    };
 
     /// \brief output a 2 dimensional vector as [xcomponent ycomponent]
     /// \param os - stream to output to
@@ -116,6 +130,31 @@ namespace turtlelib
     /// \param v - vector to normalize
     /// \return normalized version of the vector
     Vector2D normalize(const Vector2D & v);
+
+    /// \brief addes two vectors together
+    /// \param lhs - left vector to add
+    /// \param rhs - right vector to add
+    /// \return sum of the two input vector
+    Vector2D operator+(Vector2D lhs, const Vector2D & rhs);
+
+    /// \brief subtract two vectors together
+    /// \param lhs - left vector in subtraction
+    /// \param rhs - right vector in subtrcation
+    /// \return difference of the two input vector
+    Vector2D operator-(Vector2D lhs, const Vector2D & rhs);
+
+    /// \brief multiply vector by scalar
+    /// \param lhs - scalar value
+    /// \param rhs - vector value
+    /// \return scaled vector
+    Vector2D operator*(const double lhs, const Vector2D & rhs);
+
+    /// \brief multiply vector by scalar
+    /// \param lhs - vector value
+    /// \param rhs - scalar value
+    /// \return scaled vector
+    Vector2D operator*(const Vector2D & lhs, const double rhs);
+
 
 
     /// \brief a twist (velocity representation)
