@@ -25,6 +25,39 @@ namespace turtlelib
 
     /////////////////// VECTOR2D SECTION ////////////////
 
+    //Adding += function for Vector2D
+    Vector2D & Vector2D::operator+=(const Vector2D & rhs)
+    {
+        double new_x = x + rhs.x;
+        double new_y = y + rhs.y;
+
+        x = new_x;
+        y = new_y;
+
+        return *this;
+    }
+
+    //Subtracting -= funciton for Vector2D
+    Vector2D & Vector2D::operator-=(const Vector2D & rhs)
+    {
+        double new_x = x - rhs.x;
+        double new_y = y - rhs.y;
+
+        x = new_x;
+        y = new_y;
+
+        return *this;
+        
+    }
+
+    //Multipling *= function for Vector2D
+    Vector2D & Vector2D::operator*=(const double & rhs)
+    {
+        x *= rhs;
+        y *= rhs;
+        return *this;
+    }
+
     //Printing function for Vector2D
     std::ostream & operator<<(std::ostream & os, const Vector2D & v)
     {
@@ -79,6 +112,35 @@ namespace turtlelib
         vec.y = v.y/mag;
         return vec;
     }
+
+    //Adding+ Function
+    Vector2D operator+(Vector2D lhs, const Vector2D & rhs)
+    {
+        lhs += rhs;
+        return lhs;
+    }
+
+    //Subtracting- Function
+    Vector2D operator-(Vector2D lhs, const Vector2D & rhs)
+    {
+        lhs -= rhs;
+        return lhs;
+    }
+
+    //Multiply* by scalar Function
+    Vector2D operator*(const double lhs, Vector2D rhs)
+    {
+        rhs *= lhs;
+        return rhs;
+    }
+
+    //Multiply* by scalar Function
+    Vector2D operator*(Vector2D lhs, const double rhs)
+    {
+        lhs *= rhs;
+        return lhs;
+    }
+
 
     ///////////////// TWIST 2D ////////////////////
 

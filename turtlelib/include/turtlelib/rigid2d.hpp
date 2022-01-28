@@ -147,13 +147,13 @@ namespace turtlelib
     /// \param lhs - scalar value
     /// \param rhs - vector value
     /// \return scaled vector
-    Vector2D operator*(const double lhs, const Vector2D & rhs);
+    Vector2D operator*(const double lhs, Vector2D rhs);
 
     /// \brief multiply vector by scalar
     /// \param lhs - vector value
     /// \param rhs - scalar value
     /// \return scaled vector
-    Vector2D operator*(const Vector2D & lhs, const double rhs);
+    Vector2D operator*(Vector2D lhs, const double rhs);
 
 
 
