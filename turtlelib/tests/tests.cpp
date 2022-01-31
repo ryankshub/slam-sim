@@ -148,6 +148,13 @@ TEST_CASE("normalize_angle -5pi/2 test", "[normalize_angle]")
 
 ////////////////// VECTOR2D ////////////
 
+/// TEST Vector2D ADD ASSIGN +=
+/// \brief Test adding empty vectors
+TEST_CASE("Vector2D::operator+= adding empties", "[Vector2D]")
+{
+    
+}
+
 /// TEST Vector2D Read
 /// \brief Test Reading into Vector2D
 TEST_CASE("istream Vector input","[Vector2D]") // James Avtges
