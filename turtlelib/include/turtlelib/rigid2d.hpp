@@ -155,7 +155,22 @@ namespace turtlelib
     /// \return scaled vector
     Vector2D operator*(Vector2D lhs, const double rhs);
 
+    /// \brief compute the dot product of two vectors
+    /// \param lvec - left 2D vector
+    /// \param rvec - right 2D vector
+    /// \return dot product of the vector
+    double dot(const Vector2D & lvec, const Vector2D & rvec);
 
+    /// \brief compute a vector's magnitude
+    /// \param vec - 2D vector
+    /// \return magnitude of the vector
+    double magnitude(const Vector2D & vec);
+
+    /// \brief compute the angle between two vectors, in range (-pi, pi]
+    /// \param lvec - left 2D vector
+    /// \param rvec - right 2D vector
+    /// \return angle of between the vectors, in range (-pi, pi]
+    double angle(const Vector2D & lvec, const Vector2D & rvec);
 
     /// \brief a twist (velocity representation)
     struct Twist2D

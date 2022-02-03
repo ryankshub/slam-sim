@@ -150,9 +150,218 @@ TEST_CASE("normalize_angle -5pi/2 test", "[normalize_angle]")
 
 /// TEST Vector2D ADD ASSIGN +=
 /// \brief Test adding empty vectors
-TEST_CASE("Vector2D::operator+= adding empties", "[Vector2D]")
+TEST_CASE("Vector2D::operator+= summing zeros", "[Vector2D]")
 {
-    
+    // Initialize test vectors
+    Vector2D empty{0.0, 0.0};
+
+    // Answer vector
+    Vector2D ans{0.0, 0.0};
+
+    // Operation
+    Vector2D result{0.0, 0.0};
+    result += empty;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Test adding zeros to non-zeros
+TEST_CASE("Vector2D::operator+= add zero", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{0.0, 0.0};
+    Vector2D B{1.0, 2.0};
+
+    // Answer vector
+    Vector2D ans{1.0, 2.0};
+
+    // Operation
+    Vector2D resA = A;
+    resA += B;
+    Vector2D resB = B;
+    resB += A;
+
+    REQUIRE(resA.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(resA.y == Approx( ans.y ).margin(EPSILON));
+    REQUIRE(resB.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(resB.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Basic adding case
+TEST_CASE("Vector2D::operator+= basic add", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{-3.0, 4.0};
+    Vector2D B{1.0, 2.0};
+
+    // Answer vector
+    Vector2D ans{-2.0, 6.0};
+
+    // Operation
+    Vector2D resA = A;
+    resA += B;
+    Vector2D resB = B;
+    resB += A;
+
+    REQUIRE(resA.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(resA.y == Approx( ans.y ).margin(EPSILON));
+    REQUIRE(resB.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(resB.y == Approx( ans.y ).margin(EPSILON));
+}
+
+
+/// TEST Vector2D SUBTRACT ASSIGN -=
+/// \brief Test subtracting empty vectors
+TEST_CASE("Vector2D::operator-= summing zeros", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D empty{0.0, 0.0};
+
+    // Answer vector
+    Vector2D ans{0.0, 0.0};
+
+    // Operation
+    Vector2D result{0.0, 0.0};
+    result -= empty;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Test subtract zeros from non-zeros
+TEST_CASE("Vector2D::operator-= subtract zero", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{0.0, 0.0};
+    Vector2D B{1.0, 2.0};
+
+    // Answer vector
+    Vector2D ans{1.0, 2.0};
+
+    // Operation
+    Vector2D resA = A;
+    resA -= B;
+    Vector2D resB = B;
+    resB -= A;
+
+    REQUIRE(resA.x == Approx( -ans.x ).margin(EPSILON));
+    REQUIRE(resA.y == Approx( -ans.y ).margin(EPSILON));
+    REQUIRE(resB.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(resB.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Basic subtracting case
+TEST_CASE("Vector2D::operator-= basic subtract", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{-3.0, 4.0};
+    Vector2D B{1.0, 2.0};
+
+    // Answer vector
+    Vector2D ans{-4.0, 2.0};
+
+    // Operation
+    Vector2D resA = A;
+    resA -= B;
+    Vector2D resB = B;
+    resB -= A;
+
+    REQUIRE(resA.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(resA.y == Approx( ans.y ).margin(EPSILON));
+    REQUIRE(resB.x == Approx( -ans.x ).margin(EPSILON));
+    REQUIRE(resB.y == Approx( -ans.y ).margin(EPSILON));
+}
+
+/// TEST Vector2D SCALE ASSIGN *=
+/// \brief Test scaling vectors by zero
+TEST_CASE("Vector2D::operator*= scale by zero", "[Vector2D]")
+{
+    // Initialize test vectors
+    double scalar = 0;
+    Vector2D vec{1.0, -2.0};
+
+    // Answer vector
+    Vector2D ans{0.0, 0.0};
+
+    // Operation
+    Vector2D result = vec;
+    result *= scalar;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Test scaling vectors by one
+TEST_CASE("Vector2D::operator*= scale by one", "[Vector2D]")
+{
+    // Initialize test vectors
+    double scalar = 1;
+    Vector2D vec{1.0, -2.0};
+
+    // Answer vector
+    Vector2D ans = vec;
+
+    // Operation
+    Vector2D result = vec;
+    result *= scalar;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Test flipping vectors
+TEST_CASE("Vector2D::operator*= flip vector", "[Vector2D]")
+{
+    // Initialize test vectors
+    double scalar = -1;
+    Vector2D vec{1.0, -2.0};
+
+    // Answer vector
+    Vector2D ans{-1.0, 2.0};
+
+    // Operation
+    Vector2D result = vec;
+    result *= scalar;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Test positive scaling 
+TEST_CASE("Vector2D::operator*= positive scaling", "[Vector2D]")
+{
+    // Initialize test vectors
+    double scalar = 3;
+    Vector2D vec{1.0, -2.0};
+
+    // Answer vector
+    Vector2D ans{3.0, -6.0};
+
+    // Operation
+    Vector2D result = vec;
+    result *= scalar;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Test negative scaling
+TEST_CASE("Vector2D::operator*= negative scaling", "[Vector2D]")
+{
+    // Initialize test vectors
+    double scalar = -4.3;
+    Vector2D vec{1.0, -2.0};
+
+    // Answer vector
+    Vector2D ans{-4.3, 8.6};
+
+    // Operation
+    Vector2D result = vec;
+    result *= scalar;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
 }
 
 /// TEST Vector2D Read
@@ -188,6 +397,7 @@ TEST_CASE("ostream Vector output","[Vector2D]") // James Avtges
     REQUIRE(vectorOut.str() == "[9 1]");
 }
 
+
 /// TEST Vector2D normalize
 /// \brief Test Normalizing a Vector2D
 TEST_CASE("normalize Vector2D","[Vector2D]") 
@@ -200,6 +410,224 @@ TEST_CASE("normalize Vector2D","[Vector2D]")
 
     REQUIRE(norm.x == Approx(x_ans).margin(EPSILON));
     REQUIRE(norm.y == Approx(y_ans).margin(EPSILON));
+}
+
+
+/// TEST Vector2D ADD +
+/// \brief Test adding empty vectors
+TEST_CASE("Vector2D::operator+ summing zeros", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D empty{0.0, 0.0};
+
+    // Answer vector
+    Vector2D ans{0.0, 0.0};
+
+    // Operation
+    Vector2D result = empty + empty;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Test adding zeros to non-zeros
+TEST_CASE("Vector2D::operator+ add zero", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{0.0, 0.0};
+    Vector2D B{1.0, 2.0};
+
+    // Answer vector
+    Vector2D ans{1.0, 2.0};
+
+    // Operation
+    Vector2D resA = A + B;
+    Vector2D resB = B + A;
+
+    REQUIRE(resA.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(resA.y == Approx( ans.y ).margin(EPSILON));
+    REQUIRE(resB.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(resB.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Basic adding case
+TEST_CASE("Vector2D::operator+ basic add", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{-3.0, 4.0};
+    Vector2D B{1.0, 2.0};
+
+    // Answer vector
+    Vector2D ans{-2.0, 6.0};
+
+    // Operation
+    Vector2D resA = A + B;
+    Vector2D resB = B + A;
+
+    REQUIRE(resA.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(resA.y == Approx( ans.y ).margin(EPSILON));
+    REQUIRE(resB.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(resB.y == Approx( ans.y ).margin(EPSILON));
+}
+
+
+/// TEST Vector2D SUBTRACT -
+/// \brief Test subtracting empty vectors
+TEST_CASE("Vector2D::operator- summing zeros", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D empty{0.0, 0.0};
+
+    // Answer vector
+    Vector2D ans{0.0, 0.0};
+
+    // Operation
+    Vector2D result = empty - empty;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Test subtract zeros from non-zeros
+TEST_CASE("Vector2D::operator- subtract zero", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{0.0, 0.0};
+    Vector2D B{1.0, 2.0};
+
+    // Answer vector
+    Vector2D ans{1.0, 2.0};
+
+    // Operation
+    Vector2D resA = A - B;
+    Vector2D resB = B - A;
+
+    REQUIRE(resA.x == Approx( -ans.x ).margin(EPSILON));
+    REQUIRE(resA.y == Approx( -ans.y ).margin(EPSILON));
+    REQUIRE(resB.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(resB.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Basic subtracting case
+TEST_CASE("Vector2D::operator- basic subtract", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{-3.0, 4.0};
+    Vector2D B{1.0, 2.0};
+
+    // Answer vector
+    Vector2D ans{-4.0, 2.0};
+
+    // Operation
+    Vector2D resA = A - B;
+    Vector2D resB = B - A;
+
+    REQUIRE(resA.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(resA.y == Approx( ans.y ).margin(EPSILON));
+    REQUIRE(resB.x == Approx( -ans.x ).margin(EPSILON));
+    REQUIRE(resB.y == Approx( -ans.y ).margin(EPSILON));
+}
+
+
+/// TEST Vector2D SCALE  *
+/// \brief Test scaling vectors by zero
+TEST_CASE("Vector2D::operator* scale by zero", "[Vector2D]")
+{
+    // Initialize test vectors
+    double scalar = 0;
+    Vector2D vec{1.0, -2.0};
+
+    // Answer vector
+    Vector2D ans{0.0, 0.0};
+
+    // Operation
+    Vector2D result = vec * scalar;
+    Vector2D result2 = scalar * vec;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
+    REQUIRE(result2.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result2.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Test scaling vectors by one
+TEST_CASE("Vector2D::operator* scale by one", "[Vector2D]")
+{
+    // Initialize test vectors
+    double scalar = 1;
+    Vector2D vec{1.0, -2.0};
+
+    // Answer vector
+    Vector2D ans = vec;
+
+    // Operation
+    Vector2D result = vec * scalar;
+    Vector2D result2 = scalar * vec;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
+    REQUIRE(result2.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result2.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Test flipping vectors
+TEST_CASE("Vector2D::operator* flip vector", "[Vector2D]")
+{
+    // Initialize test vectors
+    double scalar = -1;
+    Vector2D vec{1.0, -2.0};
+
+    // Answer vector
+    Vector2D ans{-1.0, 2.0};
+
+    // Operation
+    Vector2D result = vec * scalar;
+    Vector2D result2 = scalar * vec;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
+    REQUIRE(result2.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result2.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Test positive scaling 
+TEST_CASE("Vector2D::operator* positive scaling", "[Vector2D]")
+{
+    // Initialize test vectors
+    double scalar = 3;
+    Vector2D vec{1.0, -2.0};
+
+    // Answer vector
+    Vector2D ans{3.0, -6.0};
+
+    // Operation
+    Vector2D result = vec * scalar;
+    Vector2D result2 = scalar * vec;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
+    REQUIRE(result2.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result2.y == Approx( ans.y ).margin(EPSILON));
+}
+
+/// \brief Test negative scaling
+TEST_CASE("Vector2D::operator* negative scaling", "[Vector2D]")
+{
+    // Initialize test vectors
+    double scalar = -4.3;
+    Vector2D vec{1.0, -2.0};
+
+    // Answer vector
+    Vector2D ans{-4.3, 8.6};
+
+    // Operation
+    Vector2D result = vec * scalar;
+    Vector2D result2 = scalar * vec;
+
+    REQUIRE(result.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result.y == Approx( ans.y ).margin(EPSILON));
+    REQUIRE(result2.x == Approx( ans.x ).margin(EPSILON));
+    REQUIRE(result2.y == Approx( ans.y ).margin(EPSILON));
 }
 
 ////////////////// TWIST2D ////////////
