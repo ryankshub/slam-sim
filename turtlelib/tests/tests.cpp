@@ -630,6 +630,201 @@ TEST_CASE("Vector2D::operator* negative scaling", "[Vector2D]")
     REQUIRE(result2.y == Approx( ans.y ).margin(EPSILON));
 }
 
+
+/// TEST Vector2D DOT PRODUCT
+/// \brief Test dot product of parallel vectors
+TEST_CASE("Vector2D dot, parallel vectors", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{2.0, 2.0};
+    Vector2D B{3.0, 3.0};
+
+    // Dot product result
+    double ans = 12.0;
+
+    // Operation
+    double result = dot(A, B);
+
+    REQUIRE(result == Approx( ans ).margin(EPSILON));
+}
+
+/// \brief Test dot product of basic vectors
+TEST_CASE("Vector2D dot, basic vectors", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{2.0, 2.0};
+    Vector2D B{0.0, 2.0};
+
+    // Dot product result
+    double ans = 4.0;
+
+    // Operation
+    double result = dot(A, B);
+
+    REQUIRE(result == Approx( ans ).margin(EPSILON));
+}
+
+/// \brief Test dot product of perpendicular vectors
+TEST_CASE("Vector2D dot, perpendicular vectors", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{2.0, 2.0};
+    Vector2D B{-2.0, 2.0};
+
+    // Dot product result
+    double ans = 0.0;
+
+    // Operation
+    double result = dot(A, B);
+
+    REQUIRE(result == Approx( ans ).margin(EPSILON));
+}
+
+/// \brief Test dot product of opposite vectors
+TEST_CASE("Vector2D dot, opposite vectors", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{2.0, 2.0};
+    Vector2D B{-2.0, -2.0};
+
+    // Dot product result
+    double ans = -8.0;
+
+    // Operation
+    double result = dot(A, B);
+
+    REQUIRE(result == Approx( ans ).margin(EPSILON));
+}
+
+
+/// TEST Vector2D CALCULATE MAGNITUDE
+/// \brief Test calculate magnitude of zero vector
+TEST_CASE("Vector2D magnitude, zero vector", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{0.0, 0.0};
+
+    // Dot product result
+    double ans = 0.0;
+
+    // Operation
+    double result = magnitude(A);
+
+    REQUIRE(result == Approx( ans ).margin(EPSILON));
+}
+
+/// \brief Test calculate magnitude of vectors
+TEST_CASE("Vector2D magnitude, basic vector", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{3.0, 4.0};
+    Vector2D B{3.0, -4.0};
+    Vector2D C{-3.0, 4.0};
+    Vector2D D{-3.0, -4.0};
+
+    // Dot product result
+    double ans = 5.0;
+
+    // Operation
+    double resultA = magnitude(A);
+    double resultB = magnitude(B);
+    double resultC = magnitude(C);
+    double resultD = magnitude(D);
+
+    REQUIRE(resultA == Approx( ans ).margin(EPSILON));
+    REQUIRE(resultB == Approx( ans ).margin(EPSILON));
+    REQUIRE(resultC == Approx( ans ).margin(EPSILON));
+    REQUIRE(resultD == Approx( ans ).margin(EPSILON));
+}
+
+/// TEST Vector2D CALCULATE ANGLE
+/// \brief Test calculate angle of parallel vectors
+TEST_CASE("Vector2D angle, parallel vectors", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{2.0, 2.0};
+    Vector2D B{3.0, 3.0};
+
+    // Dot product result
+    double ans = 0.0;
+
+    // Operation
+    double result = angle(A, B);
+
+    REQUIRE(result == Approx( ans ).margin(EPSILON));
+}
+
+/// \brief Test calculate angle of basic vectors
+TEST_CASE("Vector2D angle, basic vectors", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{2.0, 2.0};
+    Vector2D B{0.0, 2.0};
+
+    // Dot product result
+    double ans = PI/4.0;
+
+    // Operation
+    double result = angle(A, B);
+
+    REQUIRE(result == Approx( ans ).margin(EPSILON));
+}
+
+/// \brief Test calculate angle of perpendicular vectors
+TEST_CASE("Vector2D angle, perpendicular vectors", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{2.0, 2.0};
+    Vector2D B{-2.0, 2.0};
+
+    // Dot product result
+    double ans = PI/2.0;
+
+    // Operation
+    double result = angle(A, B);
+
+    REQUIRE(result == Approx( ans ).margin(EPSILON));
+}
+
+/// \brief Test calculate angle of opposite vectors
+TEST_CASE("Vector2D angle, opposite vectors", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{2.0, 2.0};
+    Vector2D B{-2.0, -2.0};
+
+    // Dot product result
+    double ans = PI;
+
+    // Operation
+    double result = angle(A, B);
+
+    REQUIRE(result == Approx( ans ).margin(EPSILON));
+}
+
+/// \brief Test calculate angle exception with zero mag left vector
+TEST_CASE("Vector2D angle, zero mag left vector", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{0.0, 0.0};
+    Vector2D B{-2.0, -2.0};
+
+    // Operation
+    REQUIRE_THROWS(angle(A,B));
+}
+
+/// \brief Test calculate angle exception with zero mag right vector
+TEST_CASE("Vector2D angle, zero mag right vector", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{2.0, 2.0};
+    Vector2D B{0.0, 0.0};
+
+    // Operation
+    REQUIRE_THROWS(angle(A,B));
+}
+
+
 ////////////////// TWIST2D ////////////
 
 /// TEST Twist2D ReadPrinting from Vector2D
@@ -1304,4 +1499,86 @@ TEST_CASE("ostream Transform output","[Transform2D]")// James Avtges
     transformOut << T;
 
     REQUIRE(transformOut.str() == "deg: 60 x: 3.2 y: 4");
+}
+
+
+/// TEST Transform2D Integrate
+/// \brief Test Zero Twist
+TEST_CASE("integration zero Twist2D", "[Transform2D]")
+{
+    //Test twist
+    Twist2D twist{0.0, 0.0, 0.0};
+
+    //Answers components
+    Vector2D ans_trans{0.0, 0.0};
+    double ans_angle = 0.0;
+
+    //Results
+    Transform2D res = integrate_twist(twist);
+    Vector2D res_trans = res.translation();
+    double res_angle = res.rotation();
+
+    REQUIRE(res_trans.x == Approx(ans_trans.x).margin(EPSILON));
+    REQUIRE(res_trans.y == Approx(ans_trans.y).margin(EPSILON));
+    REQUIRE(res_angle == Approx(ans_angle).margin(EPSILON));
+}
+
+/// \brief Test Translation of 2D Twist
+TEST_CASE("integrate translation Twist2D", "[Transform2D]")
+{
+    //Test twist
+    Twist2D twist{0.0, 5.0, 2.0};
+
+    //Answers components
+    Vector2D ans_trans{5.0, 2.0};
+    double ans_angle = 0.0;
+
+    //Results
+    Transform2D res = integrate_twist(twist);
+    Vector2D res_trans = res.translation();
+    double res_angle = res.rotation();
+
+    REQUIRE(res_trans.x == Approx(ans_trans.x).margin(EPSILON));
+    REQUIRE(res_trans.y == Approx(ans_trans.y).margin(EPSILON));
+    REQUIRE(res_angle == Approx(ans_angle).margin(EPSILON));
+}
+
+/// \brief Test Rotation of 2D Twist
+TEST_CASE("integrate rotation Twist2D", "[Transform2D]")
+{
+    //Test twist
+    Twist2D twist{PI/4.0, 0.0, 0.0};
+
+    //Answers components
+    Vector2D ans_trans{0.0, 0.0};
+    double ans_angle = PI/4.0;
+
+    //Results
+    Transform2D res = integrate_twist(twist);
+    Vector2D res_trans = res.translation();
+    double res_angle = res.rotation();
+
+    REQUIRE(res_trans.x == Approx(ans_trans.x).margin(EPSILON));
+    REQUIRE(res_trans.y == Approx(ans_trans.y).margin(EPSILON));
+    REQUIRE(res_angle == Approx(ans_angle).margin(EPSILON));
+}
+
+/// \brief Test Full Motion of 2D Twist
+TEST_CASE("integrate full motion Twist2D", "[Transform2D]")
+{
+    //Test twist
+    Twist2D twist{PI/4.0, 5.0, 2.0};
+
+    //Answers components
+    Vector2D ans_trans{3.75574, 3.66525};
+    double ans_angle = PI/4.0;
+
+    //Results
+    Transform2D res = integrate_twist(twist);
+    Vector2D res_trans = res.translation();
+    double res_angle = res.rotation();
+
+    REQUIRE(res_trans.x == Approx(ans_trans.x).margin(EPSILON));
+    REQUIRE(res_trans.y == Approx(ans_trans.y).margin(EPSILON));
+    REQUIRE(res_angle == Approx(ans_angle).margin(EPSILON));
 }

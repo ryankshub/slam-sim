@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <stdexcept>
 
 namespace turtlelib
 {
@@ -141,6 +142,36 @@ namespace turtlelib
         return lhs;
     }
 
+    //dot function
+    double dot(const Vector2D & lvec, const Vector2D & rvec)
+    {
+        return (lvec.x*rvec.x) + (lvec.y*rvec.y);
+    }
+
+    //magnitude function
+    double magnitude(const Vector2D & vec)
+    {
+        return std::sqrt(pow(vec.x,2.0) + pow(vec.y,2.0));
+    }
+
+    //angle function
+    double angle(const Vector2D & lvec, const Vector2D & rvec)
+    {
+        double lmag = magnitude(lvec);
+        double rmag = magnitude(rvec);
+        // Check if valid magnitudes
+        if (almost_equal(lmag, 0.0))
+        {
+            throw std::invalid_argument{"First vector has a magnitude of zero"};
+        } else if (almost_equal(rmag, 0.0)) {
+            throw std::invalid_argument{"Second vector has a magnitude of zero"};
+        }
+        double dot_prod = dot(lvec, rvec);
+        double angle = dot_prod/(lmag * rmag);
+        angle = std::acos(angle);
+        return angle;
+    }
+
 
     ///////////////// TWIST 2D ////////////////////
 
@@ -196,7 +227,6 @@ namespace turtlelib
 
         return is;
     }
-
 
     ////////////// TRANSFORM2D SECTION //////////////////
     //Transform2D Identity 
@@ -391,4 +421,21 @@ namespace turtlelib
         return lhs;
     }
 
+    //Transform integration
+    Transform2D integrate_twist(const Twist2D & twist)
+    {
+
+        if (almost_equal(twist.theta_dot, 0.0))
+        {
+            return Transform2D{Vector2D{twist.x_dot, twist.y_dot}};
+        }
+        
+        double ys = -twist.x_dot/twist.theta_dot;
+        double xs = twist.y_dot/twist.theta_dot;
+        Transform2D Tsb{Vector2D{xs, ys}};
+
+        Transform2D Tss_p{twist.theta_dot};
+
+        return Tsb.inv() * Tss_p * Tsb;
+    }
 }

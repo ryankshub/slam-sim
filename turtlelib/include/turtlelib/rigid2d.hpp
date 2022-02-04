@@ -166,10 +166,11 @@ namespace turtlelib
     /// \return magnitude of the vector
     double magnitude(const Vector2D & vec);
 
-    /// \brief compute the angle between two vectors, in range (-pi, pi]
+    /// \brief compute the angle between two vectors, in range [0, pi]
     /// \param lvec - left 2D vector
     /// \param rvec - right 2D vector
-    /// \return angle of between the vectors, in range (-pi, pi]
+    /// \return angle of between the vectors, in range [0, pi]
+    /// \throw Invalid argument if either vector has a magnitude of zero
     double angle(const Vector2D & lvec, const Vector2D & rvec);
 
     /// \brief a twist (velocity representation)
@@ -274,8 +275,10 @@ namespace turtlelib
     /// HINT: This function should be implemented in terms of *=
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs);
 
-
-
+    /// \brief integrate a 2D twist for one time-unit
+    /// \param twist - body frame twist to integrate
+    /// \return 2D transformation matrix representing the motion
+    Transform2D integrate_twist(const Twist2D & twist);
 }
 
 #endif
