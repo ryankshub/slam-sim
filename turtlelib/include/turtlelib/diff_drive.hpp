@@ -4,6 +4,7 @@
 /// \brief Kinematics of a differential drive wheeled mobile robot
 
 #include <vector>
+#include<iosfwd> // contains forward definitions for iostream objects
 
 namespace turtlelib {
 /// \brief Kinematics of 2-wheeled diff drive mobile robot
@@ -24,7 +25,7 @@ namespace turtlelib {
         /// \param x - x position of the robot (meters)
         /// \param y - y position of the robot (meters)
         /// \param theta - angle of the robot (radians, in range (-pi, pi])
-        explicit DiffDrive(double x, double y, double theta);
+        explicit DiffDrive(double theta, double x, double y);
 
         /// \brief Creates a robot at established location with given wheel track and wheel radius
         /// \param wheel_track - length of wheel axis between the 2 wheel center points
@@ -33,7 +34,7 @@ namespace turtlelib {
         /// \param y - y position of the robot (meters)
         /// \param theta - angle of the robot (radians, in range (-pi, pi] )
         explicit DiffDrive(double wheel_track, double wheel_radius, 
-            double x, double y, double theta);
+            double theta, double x, double y);
 
         /// \brief returns the current angle of the robot
         double get_theta() const;
@@ -57,7 +58,7 @@ namespace turtlelib {
         /// \param x - x position of the robot (meters)
         /// \param y - y position of the robot (meters)
         /// \param theta - angle of the robot (radians, in range (-pi, pi] )
-        DiffDrive & set_location(const double x, const double y, const double theta);
+        DiffDrive & set_location( const double theta, const double x, const double y);
 
         /// \brief alteres the wheel configuration of the robot
         /// \param wheel_track - length of wheel axis between the 2 wheel center points
@@ -81,15 +82,15 @@ namespace turtlelib {
 
         /// \brief \see operator<<(...) (declared outside this class)
         /// for a description
-        friend std::ostream & operator<<(std::ostream & os, const Transform2D & tf);
+        friend std::ostream & operator<<(std::ostream & os, const DiffDrive & dd);
     private:
         //Wheel Configuration
         double mWheel_track;
         double mWheel_rad;
         //Robot Configuration
+        double mAng_rad;
         double mX_m;
         double mY_m;
-        double mAng_rad;
         double mLw_rad;
         double mRw_rad;
     };
