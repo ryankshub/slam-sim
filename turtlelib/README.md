@@ -26,7 +26,7 @@ A library for handling transformations in SE(2) and other turtlebot-related math
 
 
 2. What is the difference between a class and a struct in C++?
-    - A struct is a collection of indepedent datum. A class is a collection of datum with method functions for manipulating, interfacing, and maintaining the datum and any invariants they must adhere to. 
+    - A struct is a collection of indepedent datum. A class is a collection of datum with method functions for manipulating, interfacing, and maintaining the datum and any invariants they must adhere to. **Technically the only difference between a class and struct in C++ is that a struct is public by default and a class is private by default.**
 
 
 3. Why is Vector2D a struct and Transform2DClass (refer to at least 2 specific C++ core guidelines in your answer)?
