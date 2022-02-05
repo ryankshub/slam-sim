@@ -1,5 +1,6 @@
 #include "turtlelib/diff_drive.hpp"
-
+#include <stdexcept>
+#include <iostream>
 
 namespace turtlelib {
 
@@ -37,43 +38,43 @@ namespace turtlelib {
     }
 
     //DiffDrive get theta
-    double DiffDrive::get_theta()
+    double DiffDrive::theta() const
     {
         return mAng_rad;
     }
 
     //DiffDrive get location
-    Vector2D DiffDrive::get_location()
+    Vector2D DiffDrive::location() const
     {
         return {mX_m, mY_m};
     }
 
     //DiffDrive get wheel track
-    double DiffDrive::get_wheel_track()
+    double DiffDrive::wheel_track() const
     {
         return mWheel_track;
     }
 
     //DiffDrive get wheel radius
-    double DiffDrive::get_wheel_radius()
+    double DiffDrive::wheel_radius() const
     {
         return mWheel_rad;
     }
 
     //DiffDrive get left wheel position
-    double DiffDrive::get_left_wheel_pos()
+    double DiffDrive::left_wheel_pos() const
     {
         return mLw_rad;
     }
 
     //DiffDrive get right wheel position
-    double DiffDrive::get_right_wheel_pos()
+    double DiffDrive::right_wheel_pos() const
     {
         return mRw_rad;
     }
 
     //DiffDrive set_location
-    DiffDrive & DiffDrive::set_location( const double theta, const double x, const double y)
+    DiffDrive & DiffDrive::set_configuration( const double theta, const double x, const double y)
     {
         mAng_rad = normalize_angle(theta);
         mX_m = x;
@@ -82,37 +83,79 @@ namespace turtlelib {
         return *this;
     }
 
-    //DiffDrive set wheel config
-    DiffDrive & DiffDrive::set_wheel_config( const double wheel_track, const double wheel_radius)
-    {
-        mWheel_track = wheel_track;
-        mWheel_rad = wheel_radius;
-        return *this;
-    }
-
     //DiffDrive apply fw kinematics
-    DiffDrive & apply_fw_kinematics(const double left_pos, const double right_pos)
+    DiffDrive & DiffDrive::apply_fw_kinematics(const double left_pos, const double right_pos)
     {
+        // Get wheel velocities
+        double left_vel = left_pos - mLw_rad;
+        double right_vel = right_pos - mRw_rad;
+        
+        // Get Body Twist
+        double theta_dot = (-mWheel_rad/mWheel_track)*left_vel + (mWheel_track/mWheel_track)*right_vel;
+        double x_dot = (0.5*mWheel_rad)*(left_vel + right_vel);
+        Twist2D body_twist{theta_dot, x_dot, 0};
+
+        //Integrate Twist
+        Transform2D motion = integrate_twist(body_twist);
+
+        //Convert motion to world frame
+        Twist2D qb{motion.rotation(), motion.translation().x, motion.translation().y};
+        Twist2D q = Transform2D{mAng_rad}(qb); //Apply Adjunct
+
+        //Update configuration
+        mLw_rad = normalize_angle(left_pos);
+        mRw_rad = normalize_angle(right_pos);
+        mAng_rad = mAng_rad + q.theta_dot;
+        mX_m = mX_m + q.x_dot;
+        mY_m = mY_m + q.y_dot;
+
         return *this;
     }
 
     //DiffDrive calculate inv kinematics
-    std::vector<double> DiffDrive::cal_inv_kinematics(const Twist2D & twist_b)
+    std::vector<double> DiffDrive::cal_inv_kinematics(const Twist2D & twist_b) const
     {
-        return std::vector<double>{};
+        if (!almost_equal(twist_b.y_dot, 0.0))
+        {
+            throw std::logic_error("Invalid twist has been provided");
+        } 
+        double left_vel = (-0.5*mWheel_track*twist_b.theta_dot + twist_b.x_dot)/mWheel_rad;
+        double right_vel = (0.5*mWheel_track*twist_b.theta_dot + twist_b.x_dot)/mWheel_rad;
+        return std::vector<double>{left_vel, right_vel};
     }
 
     //DiffDrive apply twist
-    DiffDrive & DiffDrive::apply_twist(const Twist2D & twist_b, const double dt = 1.0)
+    DiffDrive & DiffDrive::apply_twist(const Twist2D & twist_b, const double dt)
     {
+        if (!almost_equal(twist_b.y_dot, 0.0))
+        {
+            throw std::logic_error("Invalid twist has been provided");
+        }
+        //Get wheel velocities
+        std::vector<double> velocities = cal_inv_kinematics(twist_b);
+        
+        //Integrate Twist
+        Transform2D motion = integrate_twist(twist_b);
+
+        //Convert motion to world frame
+        Twist2D qb{motion.rotation(), motion.translation().x, motion.translation().y};
+        Twist2D q = Transform2D{mAng_rad}(qb); //Apply Adjunct
+
+        //Update configuration
+        mLw_rad = normalize_angle(mLw_rad + velocities.at(0)*dt);
+        mRw_rad = normalize_angle( mRw_rad + velocities.at(1)*dt);
+        mAng_rad = mAng_rad + q.theta_dot;
+        mX_m = mX_m + q.x_dot;
+        mY_m = mY_m + q.y_dot;
+
         return *this;
     }
 
     //DiffDrive print fcn
     std::ostream & operator<<(std::ostream & os, const DiffDrive & dd)
     {
-        os << "loc (" << mX_m << ", " << mY_m << ", " << mAng_rad << ") ";
-        os << "radius: " << mWheel_rad << " track: " << mWheel_track;
+        os << "loc (" << dd.mX_m << ", " << dd.mY_m << ", " << dd.mAng_rad << ") ";
+        os << "radius: " << dd.mWheel_rad << " track: " << dd.mWheel_track;
         return os;
     }
 }

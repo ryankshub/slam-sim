@@ -4,6 +4,7 @@
 
 #include "catch_ros/catch.hpp"
 #include "turtlelib/rigid2d.hpp"
+#include "turtlelib/diff_drive.hpp"
 #include <cmath>
 #include <sstream>
 
@@ -1581,4 +1582,119 @@ TEST_CASE("integrate full motion Twist2D", "[Transform2D]")
     REQUIRE(res_trans.x == Approx(ans_trans.x).margin(EPSILON));
     REQUIRE(res_trans.y == Approx(ans_trans.y).margin(EPSILON));
     REQUIRE(res_angle == Approx(ans_angle).margin(EPSILON));
+}
+
+
+////////////////// DIFFDRIVE ////////////
+
+/// TEST DiffDrive::DiffDrive()
+/// \brief Test Empty Constructor
+TEST_CASE("DiffDrive Empty Constructor", "[DiffDrive]") 
+{
+    DiffDrive D{};
+
+    Vector2D l_ans = D.location();
+    double ang_ans = D.theta();
+    double track_ans = D.wheel_track();
+    double radius_ans = D.wheel_radius();
+    double left_wheel_ans = D.left_wheel_pos();
+    double right_wheel_ans = D.right_wheel_pos();
+
+    REQUIRE(l_ans.x == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(l_ans.y == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(ang_ans == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(track_ans == Approx( 0.1 ).margin(EPSILON));
+    REQUIRE(radius_ans == Approx( 0.1 ).margin(EPSILON));
+    REQUIRE(left_wheel_ans == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(right_wheel_ans == Approx( 0.0 ).margin(EPSILON));
+}
+
+
+/// TEST DiffDrive::DiffDrive(double, double)
+/// \brief Test Wheel Configuration Constructor
+TEST_CASE("DiffDrive Wheel Configuration Constructor", "[DiffDrive]") 
+{
+    DiffDrive D{.3, 3.5};
+
+    Vector2D l_ans = D.location();
+    double ang_ans = D.theta();
+    double track_ans = D.wheel_track();
+    double radius_ans = D.wheel_radius();
+    double left_wheel_ans = D.left_wheel_pos();
+    double right_wheel_ans = D.right_wheel_pos();
+
+    REQUIRE(l_ans.x == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(l_ans.y == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(ang_ans == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(track_ans == Approx( 0.3 ).margin(EPSILON));
+    REQUIRE(radius_ans == Approx( 3.5 ).margin(EPSILON));
+    REQUIRE(left_wheel_ans == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(right_wheel_ans == Approx( 0.0 ).margin(EPSILON));
+}
+
+
+/// TEST DiffDrive::DiffDrive(double, double, double)
+/// \brief Test Robot Configuration Constructor
+TEST_CASE("DiffDrive Robot Configuration Constructor", "[DiffDrive]") 
+{
+    DiffDrive D{PI/3, 3.5, -0.8};
+
+    Vector2D l_ans = D.location();
+    double ang_ans = D.theta();
+    double track_ans = D.wheel_track();
+    double radius_ans = D.wheel_radius();
+    double left_wheel_ans = D.left_wheel_pos();
+    double right_wheel_ans = D.right_wheel_pos();
+
+    REQUIRE(l_ans.x == Approx( 3.5 ).margin(EPSILON));
+    REQUIRE(l_ans.y == Approx( -0.8 ).margin(EPSILON));
+    REQUIRE(ang_ans == Approx( PI/3).margin(EPSILON));
+    REQUIRE(track_ans == Approx( 0.1 ).margin(EPSILON));
+    REQUIRE(radius_ans == Approx( 0.1 ).margin(EPSILON));
+    REQUIRE(left_wheel_ans == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(right_wheel_ans == Approx( 0.0 ).margin(EPSILON));
+}
+
+/// \brief Test Robot Configuration Constructor w/ normalization
+TEST_CASE("DiffDrive Robot Configuration Constructor w/ normalization", "[DiffDrive]") 
+{
+    DiffDrive D{(7*PI)/3, 3.5, -0.8};
+
+    Vector2D l_ans = D.location();
+    double ang_ans = D.theta();
+    double track_ans = D.wheel_track();
+    double radius_ans = D.wheel_radius();
+    double left_wheel_ans = D.left_wheel_pos();
+    double right_wheel_ans = D.right_wheel_pos();
+
+    REQUIRE(l_ans.x == Approx( 3.5 ).margin(EPSILON));
+    REQUIRE(l_ans.y == Approx( -0.8 ).margin(EPSILON));
+    REQUIRE(ang_ans == Approx( PI/3).margin(EPSILON));
+    REQUIRE(track_ans == Approx( 0.1 ).margin(EPSILON));
+    REQUIRE(radius_ans == Approx( 0.1 ).margin(EPSILON));
+    REQUIRE(left_wheel_ans == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(right_wheel_ans == Approx( 0.0 ).margin(EPSILON));
+}
+
+
+/// TEST DiffDrive::DiffDrive(double, double, double, double, double)
+/// \brief Test Full Constructor
+TEST_CASE("DiffDrive Full Constructor", "[DiffDrive]") 
+{
+    DiffDrive D{0.3, 0.4, PI/3, 3.5, -0.8};
+
+    Vector2D l_ans = D.location();
+    double ang_ans = D.theta();
+    double track_ans = D.wheel_track();
+    double radius_ans = D.wheel_radius();
+    double left_wheel_ans = D.left_wheel_pos();
+    double right_wheel_ans = D.right_wheel_pos();
+
+    REQUIRE(l_ans.x == Approx( 3.5 ).margin(EPSILON));
+    REQUIRE(l_ans.y == Approx( -0.8 ).margin(EPSILON));
+    REQUIRE(ang_ans == Approx( PI/3).margin(EPSILON));
+    REQUIRE(track_ans == Approx( 0.3 ).margin(EPSILON));
+    REQUIRE(radius_ans == Approx( 0.4 ).margin(EPSILON));
+    REQUIRE(left_wheel_ans == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(right_wheel_ans == Approx( 0.0 ).margin(EPSILON));
 }

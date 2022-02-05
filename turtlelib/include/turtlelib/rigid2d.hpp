@@ -177,13 +177,13 @@ namespace turtlelib
     struct Twist2D
     {
         /// \brief Rotational velocity 
-        double theta_dot = 0.0;
+        double theta_dot;
 
         /// \brief Velocity in the x-axis
-        double x_dot = 0.0;
+        double x_dot;
 
         /// \brief Velocity in the y-axis
-        double y_dot = 0.0;
+        double y_dot;
     };
 
     /// \brief Print a 2D twist
