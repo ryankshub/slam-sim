@@ -8,9 +8,9 @@ project(nuturtle_control)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  nuturtlebot_msgs
   roscpp
   std_msgs
-  turtlelib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -107,7 +107,7 @@ catkin_package(
 #  LIBRARIES nuturtle_control
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
-   CATKIN_DEPENDS message_runtime roscpp std_msgs
+   CATKIN_DEPENDS roscpp std_msgs
 )
 
 ###########
@@ -134,7 +134,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/nuturtle_control_node.cpp)
+add_executable(${PROJECT_NAME} src/turtle_interface.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -147,9 +147,17 @@ include_directories(
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(${PROJECT_NAME}_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  turtlelib
+)
+
+# Compiler options
+# enable C++ 17
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17) 
+
+# warnings are your friend!
+target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
 
 #############
 ## Install ##
@@ -167,9 +175,9 @@ include_directories(
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
-# install(TARGETS ${PROJECT_NAME}_node
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html

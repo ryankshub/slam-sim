@@ -157,7 +157,7 @@ target_link_libraries(${PROJECT_NAME}
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17) 
 
 # warnings are your friend!
-#target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
+target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
 
 #############
 ## Install ##

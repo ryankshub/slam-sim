@@ -78,8 +78,8 @@ static double obs_radius;
 /// \param req - Empty Request
 /// \param res - Empty Response 
 /// \returns true if service completes successfully
-bool reset(std_srvs::Empty::Request &req,
-           std_srvs::Empty::Response &res)
+bool reset(std_srvs::Empty::Request &,
+           std_srvs::Empty::Response &)
 {
     timestep = 0;
     x = x_init;
@@ -94,7 +94,7 @@ bool reset(std_srvs::Empty::Request &req,
 /// \param res - Teleport Response 
 /// \returns true if service completes successfully
 bool teleport(nusim::Teleport::Request &req,
-              nusim::Teleport::Response &res)
+              nusim::Teleport::Response &)
 {
     x = req.x;
     y = req.y;
