@@ -120,6 +120,7 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
+    src/diff_drive.cpp
     src/rigid2d.cpp
 )
 
