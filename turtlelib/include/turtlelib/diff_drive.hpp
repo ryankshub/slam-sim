@@ -71,13 +71,13 @@ namespace turtlelib {
         /// \brief Given new wheel positions, updates the robot's location and angle
         /// \param left_pos - new angle of left wheel
         /// \param right_pos - new angle of the right wheel
-        DiffDrive & apply_fw_kinematics(const double left_pos, const double right_pos);
+        DiffDrive & apply_fw_kin(const double left_pos, const double right_pos);
 
         /// \brief Given a body twist, determine the wheel velocity to follow the twist
         /// \param twist_b - body twist robot attempts to follow
         /// \throw - logic_error if twist cannot be followed by robot
         /// \return a vector containing the [left_vel, right_vel]
-        std::vector<double> cal_inv_kinematics(const Twist2D & twist_b) const;
+        std::vector<double> cal_inv_kin(const Twist2D & twist_b) const;
 
         /// \brief Applies a body Twist to the robot, updating the robot's location and angle
         /// \param twist_b - body twist robot attempts to follow
