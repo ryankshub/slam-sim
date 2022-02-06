@@ -24,6 +24,7 @@ namespace turtlelib {
         /// \brief Create a robot with custom wheel radius with variable track
         /// \param wheel_track - length of wheel axis between the 2 wheel center points (must be > 0)
         /// \param wheel_radius - radius of the wheel (must be > 0).
+        /// \throw invalid_argument if wheel_track or wheel_radius is <= 0
         DiffDrive(double wheel_track, double wheel_radius);
 
         /// \brief Creates a robot at established location with given wheel track and wheel radius
@@ -33,6 +34,7 @@ namespace turtlelib {
         /// \param y - y position of the robot (meters)
         /// \param theta - angle of the robot (radians, in range (-pi, pi]). 
         ///              - If angle is outside of range, it will be normalized
+        /// \throw invalid_argument if wheel_track or wheel_radius is <= 0
         DiffDrive(double wheel_track, double wheel_radius, 
             double theta, double x, double y);
 
@@ -58,7 +60,13 @@ namespace turtlelib {
         /// \param x - x position of the robot (meters)
         /// \param y - y position of the robot (meters)
         /// \param theta - angle of the robot (radians, in range (-pi, pi] )
-        DiffDrive & set_configuration( const double theta, const double x, const double y);
+        DiffDrive & set_configuration(const double theta, const double x, const double y);
+        
+        /// \brief alteres the wheel configuration of the robot
+        /// \param wheel_track - length of wheel axis between the 2 wheel center points
+        /// \param wheel_radius - radius of the wheel
+        /// \throw - invalid_argument if wheel_track or wheel_radius is <= 0
+        DiffDrive & set_wheel_config(const double wheel_track, const double wheel_radius);
 
         /// \brief Given new wheel positions, updates the robot's location and angle
         /// \param left_pos - new angle of left wheel
@@ -81,8 +89,8 @@ namespace turtlelib {
         friend std::ostream & operator<<(std::ostream & os, const DiffDrive & dd);
     private:
         //Wheel Configuration
-        const double mWheel_track;
-        const double mWheel_rad;
+        double mWheel_track;
+        double mWheel_rad;
         //Robot Configuration
         double mAng_rad;
         double mX_m;

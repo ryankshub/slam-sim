@@ -29,6 +29,13 @@ namespace turtlelib {
         , mLw_rad{0.0}
         , mRw_rad{0.0}
     {
+        if(almost_equal(wheel_track, 0.0) || 
+           almost_equal(wheel_radius, 0.0) || 
+           wheel_track < 0.0 || 
+           wheel_radius < 0.0)
+        {
+            throw std::invalid_argument("Wheel Track and Wheel radius must be greater than 0.0");
+        }
     }
 
     //DiffDrive get theta
@@ -68,7 +75,7 @@ namespace turtlelib {
     }
 
     //DiffDrive set_location
-    DiffDrive & DiffDrive::set_configuration( const double theta, const double x, const double y)
+    DiffDrive & DiffDrive::set_configuration(const double theta, const double x, const double y)
     {
         mAng_rad = normalize_angle(theta);
         mX_m = x;
@@ -78,8 +85,16 @@ namespace turtlelib {
     }
 
     //DiffDrive set wheel config
-    DiffDrive & DiffDrive::set_wheel_config( const double wheel_track, const double wheel_radius)
+    DiffDrive & DiffDrive::set_wheel_config(const double wheel_track, const double wheel_radius)
     {
+        if(almost_equal(wheel_track, 0.0) || 
+           almost_equal(wheel_radius, 0.0) || 
+           wheel_track < 0.0 || 
+           wheel_radius < 0.0)
+        {
+            throw std::invalid_argument("Wheel Track and Wheel radius must be greater than 0.0");
+        }
+
         mWheel_track = wheel_track;
         mWheel_rad = wheel_radius;
         return *this;

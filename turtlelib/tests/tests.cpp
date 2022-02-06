@@ -7,6 +7,7 @@
 #include "turtlelib/diff_drive.hpp"
 #include <cmath>
 #include <sstream>
+#include <stdexcept>
 
 using namespace turtlelib;
 static const double EPSILON = 1.0e-12;
@@ -1676,6 +1677,32 @@ TEST_CASE("DiffDrive Full Constructor", "[DiffDrive]")
     REQUIRE(right_wheel_ans == Approx( 0.0 ).margin(EPSILON));
 }
 
+/// \brief Test Full Constructor w/ invalid wheel track
+TEST_CASE("DiffDrive Constructor w/invalid wheel track", "[DiffDrive]") 
+{
+    bool test_passed = false;
+    try
+    {
+        DiffDrive D{0.0, 0.4, PI/3.0, 3.5, -0.8};
+    } catch(const std::exception& e) {
+        test_passed = true;
+    }
+    REQUIRE(test_passed);
+}
+
+/// \brief Test Full Constructor w/ invalid wheel radius
+TEST_CASE("DiffDrive Constructor w/ invalid wheel radius", "[DiffDrive]") 
+{
+    bool test_passed = false;
+    try
+    {
+        DiffDrive D{0.3, -0.4, PI/3.0, 3.5, -0.8};
+    } catch(const std::exception& e) {
+        test_passed = true;
+    }
+    REQUIRE(test_passed);
+}
+
 /// TEST DiffDrive::set_configuration
 /// \brief Test changing setting robot's configuration at origin
 TEST_CASE("DiffDrive set zero configuration", "[DiffDrive]") 
@@ -1728,6 +1755,26 @@ TEST_CASE("DiffDrive normalized angle when setting configuration", "[DiffDrive]"
     REQUIRE(ang_ans == Approx( PI ).margin(EPSILON));
 }
 
+/// TEST DiffDrive::set_wheel_config
+/// \brief Test changing setting robot's wheel config 
+TEST_CASE("DiffDrive set wheel configuration", "[DiffDrive]") 
+{
+    //Init object
+    DiffDrive D{0.3, 0.4, PI/3.0, 3.5, -0.8};
+    //Move robot to origin
+    D.set_wheel_config(0.7, 1.4);
+
+    double track_ans = D.wheel_track();
+    double radius_ans = D.wheel_radius();
+
+
+    REQUIRE(track_ans == Approx( 0.7 ).margin(EPSILON));
+    REQUIRE(radius_ans == Approx( 1.4 ).margin(EPSILON));
+    //Check invalid cases
+    REQUIRE_THROWS(D.set_wheel_config(0.0, 1.3));
+    REQUIRE_THROWS(D.set_wheel_config(0.5, -1.3));
+
+}
 
 /// TEST DiffDrive::apply_fw_kin
 /// \brief Test Forward Kinematics on Forward path
