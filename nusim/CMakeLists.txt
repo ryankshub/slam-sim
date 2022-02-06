@@ -115,13 +115,6 @@ catkin_package(
 ## Build ##
 ###########
 
-# Compiler options
-# enable C++ 17
-target_compile_features(turtlelib PUBLIC cxx_std_17) 
-
-# warnings are your friend!
-target_compile_options(turtlelib PUBLIC -Wall -Wextra)
-
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
@@ -158,6 +151,13 @@ add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
+
+# Compiler options
+# enable C++ 17
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17) 
+
+# warnings are your friend!
+#target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
 
 #############
 ## Install ##

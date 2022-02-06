@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
     visualization_msgs::MarkerArray cylinders;
     if (obs_radius > 0.0 && obs_x.size() > 0.0 && obs_x.size() == obs_y.size())
     {
-        for(int i=0;i < obs_x.size(); i++)
+        for(long unsigned int i=0;i < obs_x.size(); i++)
         {
             visualization_msgs::Marker cylin;
             cylin.header.stamp = ros::Time::now();

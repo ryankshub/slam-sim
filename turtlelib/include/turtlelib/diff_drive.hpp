@@ -26,14 +26,6 @@ namespace turtlelib {
         /// \param wheel_radius - radius of the wheel (must be > 0).
         DiffDrive(double wheel_track, double wheel_radius);
 
-        /// \brief Creates a robot at established location with .1m track and
-        /// \brief .1m radius
-        /// \param x - x position of the robot (meters)
-        /// \param y - y position of the robot (meters)
-        /// \param theta - angle of the robot (radians, in range (-pi, pi])
-        ///              - If angle is outside of range, it will be normalized
-        DiffDrive(double theta, double x, double y);
-
         /// \brief Creates a robot at established location with given wheel track and wheel radius
         /// \param wheel_track - length of wheel axis between the 2 wheel center points (must be > 0)
         /// \param wheel_radius - radius of the wheel (must be > 0).

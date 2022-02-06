@@ -18,12 +18,6 @@ namespace turtlelib {
     {
     }
 
-    //DiffDrive with init location
-    DiffDrive::DiffDrive(double x, double y, double theta)
-        : DiffDrive{0.1, 0.1, x, y, theta}
-    {
-    }
-
     //DiffDrive with wheel configuration and init location
     DiffDrive::DiffDrive(double wheel_track, double wheel_radius, 
         double theta, double x, double y)
