@@ -77,6 +77,14 @@ namespace turtlelib {
         return *this;
     }
 
+    //DiffDrive set wheel config
+    DiffDrive & DiffDrive::set_wheel_config( const double wheel_track, const double wheel_radius)
+    {
+        mWheel_track = wheel_track;
+        mWheel_rad = wheel_radius;
+        return *this;
+    }
+
     //DiffDrive apply fw kinematics
     DiffDrive & DiffDrive::apply_fw_kin(const double left_pos, const double right_pos)
     {
