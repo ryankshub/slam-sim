@@ -89,35 +89,25 @@ namespace turtlelib {
         // Get wheel velocities
         double left_vel = left_pos - mLw_rad;
         double right_vel = right_pos - mRw_rad;
-        std::cout << "NEW TEST!!!!!!" << std::endl;
-        std::cout << "LEFT POS " << left_pos << std::endl;
-        std::cout << "RIGHT POS " << right_pos << std::endl;
-        std::cout << "LEFT WHEEL " << mLw_rad << std::endl;
-        std::cout << "RIGHT WHEEL " << mRw_rad << std::endl;
-        std::cout << "LEFT VEL " << left_vel << std::endl;
-        std::cout << "RIGHT VEL " << right_vel << std::endl;
         // Get Body Twist
         double theta_dot = (mWheel_rad/mWheel_track)*(right_vel - left_vel);
         double x_dot = (0.5*mWheel_rad)*(left_vel + right_vel);
-        std::cout << "THETA_DOT " << theta_dot << std::endl;
-        std::cout << "X_DOT " << x_dot << std::endl;
         Twist2D body_twist{theta_dot, x_dot, 0.0};
 
         //Integrate Twist
         Transform2D motion = integrate_twist(body_twist);
-        std::cout << "MOTION " << motion << std::endl;
+
         //Convert motion to world frame
         Twist2D qb{motion.rotation(), motion.translation().x, motion.translation().y};
-        std::cout << "QB " << qb << std::endl;
         Twist2D q = Transform2D{mAng_rad}(qb); //Apply Adjunct
-        std::cout << "Q " << q <<std::endl;
+
         //Update configuration
         mLw_rad = normalize_angle(left_pos);
         mRw_rad = normalize_angle(right_pos);
         mAng_rad = mAng_rad + q.theta_dot;
         mX_m = mX_m + q.x_dot;
         mY_m = mY_m + q.y_dot;
-        std::cout << std::endl;
+
         return *this;
     }
 

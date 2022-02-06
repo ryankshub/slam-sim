@@ -1753,7 +1753,7 @@ TEST_CASE("DiffDrive normalized angle when setting configuration", "[DiffDrive]"
 
 /// TEST DiffDrive::apply_fw_kin
 /// \brief Test Forward Kinematics on Forward path
-TEST_CASE("DiffDrive FW KIN w/ Foward motion", "[DiffDrive]") 
+TEST_CASE("DiffDrive FW KIN w/ Forward motion", "[DiffDrive]") 
 {
     //Init object
     DiffDrive D{2.0, 1.0, PI/4.0, 2.0, 1.0};
@@ -1811,4 +1811,130 @@ TEST_CASE("DiffDrive FW KIN w/ circle arc", "[DiffDrive]")
     REQUIRE(ang_ans == Approx( 3.0*PI/4.0 ).margin(EPSILON));
     REQUIRE(left_wheel_ans == Approx( 0 ).margin(EPSILON));
     REQUIRE(right_wheel_ans == Approx( PI ).margin(EPSILON));
+}
+
+
+/// TEST DiffDrive::cal_inv_kin
+/// \brief Test Inverse Kinematics on Forward path
+TEST_CASE("DiffDrive INV KIN w/ Forward motion", "[DiffDrive]") 
+{
+    //Init object
+    DiffDrive D{2.0, 1.0, PI/4.0, 2.0, 1.0};
+    Twist2D B{0.0, 7.85398, 0.0};
+    //Inv Kin
+    std::vector<double> ans_vels = D.cal_inv_kin(B);
+
+    REQUIRE(ans_vels.at(0) == Approx( (5.0*PI)/2.0 ).margin(EPSILON));
+    REQUIRE(ans_vels.at(1) == Approx( (5.0*PI)/2.0 ).margin(EPSILON));
+}
+
+/// \brief Test Inverse Kinematics with rotate in place
+TEST_CASE("DiffDrive INV KIN w/ rotation", "[DiffDrive]") 
+{
+    //Init object
+    DiffDrive D{2.0, 1.0, PI/4.0, 2.0, 1.0};
+    Twist2D B{PI/2.0, 0.0, 0.0};
+    //Inv Kin
+    std::vector<double> ans_vels = D.cal_inv_kin(B);
+
+    REQUIRE(ans_vels.at(0) == Approx( -PI/2.0 ).margin(EPSILON));
+    REQUIRE(ans_vels.at(1) == Approx( PI/2.0 ).margin(EPSILON));
+}
+
+/// \brief Test Inverse Kinematics with circle arc motion
+TEST_CASE("DiffDrive INV KIN w/ circle arc", "[DiffDrive]") 
+{
+    //Init object
+    DiffDrive D{2.0, 1.0, PI/4.0, 2.0, 1.0};
+    Twist2D B{PI/2.0, PI/2.0, 0.0};
+    //Inv Kin
+    std::vector<double> ans_vels = D.cal_inv_kin(B);
+
+    REQUIRE(ans_vels.at(0) == Approx( 0 ).margin(EPSILON));
+    REQUIRE(ans_vels.at(1) == Approx( PI ).margin(EPSILON));
+}
+
+/// \brief Test Inverse Kinematics with invalid twist
+TEST_CASE("DiffDrive INV KIN w/ invalid twist", "[DiffDrive]") 
+{
+    //Init object
+    DiffDrive D{2.0, 1.0, PI/4.0, 2.0, 1.0};
+    Twist2D B{PI/2.0, 3.0, 3.0};
+    //Inv Kin
+    REQUIRE_THROWS(D.cal_inv_kin(B));
+}
+
+
+/// TEST DiffDrive::apply_twist
+/// \brief Test appling twist for Forward path
+TEST_CASE("DiffDrive apply twist w/ Forward motion", "[DiffDrive]") 
+{
+    //Init object
+    DiffDrive D{2.0, 1.0, PI/4.0, 2.0, 1.0};
+    Twist2D B{0.0, 7.85398, 0.0};
+    //Apply Twist
+    D.apply_twist(B);
+    //Get answers
+    Vector2D l_ans = D.location();
+    double ang_ans = D.theta();
+    double left_wheel_ans = D.left_wheel_pos();
+    double right_wheel_ans = D.right_wheel_pos();
+
+    REQUIRE(l_ans.x == Approx( 7.55360 ).margin(EPSILON));
+    REQUIRE(l_ans.y == Approx( 6.55360 ).margin(EPSILON));
+    REQUIRE(ang_ans == Approx( PI/4.0).margin(EPSILON));
+    REQUIRE(left_wheel_ans == Approx( PI/2.0 ).margin(EPSILON));
+    REQUIRE(right_wheel_ans == Approx( PI/2.0 ).margin(EPSILON));
+}
+
+/// \brief Test apply twist with rotate in place
+TEST_CASE("DiffDrive apply twist w/ rotation", "[DiffDrive]") 
+{
+    //Init object
+    DiffDrive D{2.0, 1.0, PI/4.0, 2.0, 1.0};
+    Twist2D B{PI/2.0, 0.0, 0.0};
+    //Apply Twist
+    D.apply_twist(B);
+    //Get answers
+    Vector2D l_ans = D.location();
+    double ang_ans = D.theta();
+    double left_wheel_ans = D.left_wheel_pos();
+    double right_wheel_ans = D.right_wheel_pos();
+
+    REQUIRE(l_ans.x == Approx( 2.0 ).margin(EPSILON));
+    REQUIRE(l_ans.y == Approx( 1.0).margin(EPSILON));
+    REQUIRE(ang_ans == Approx( (3.0*PI)/4.0 ).margin(EPSILON));
+    REQUIRE(left_wheel_ans == Approx( -PI/2.0 ).margin(EPSILON));
+    REQUIRE(right_wheel_ans == Approx( PI/2.0 ).margin(EPSILON));
+}
+
+/// \brief Test apply twist with circle arc motion
+TEST_CASE("DiffDrive apply twist w/ circle arc", "[DiffDrive]") 
+{
+    //Init object
+    DiffDrive D{2.0, 1.0, PI/4.0, 2.0, 1.0};
+    Twist2D B{PI/2.0, PI/2.0, 0.0};
+    //Apply Twist
+    D.apply_twist(B);
+    //Get answers
+    Vector2D l_ans = D.location();
+    double ang_ans = D.theta();
+    double left_wheel_ans = D.left_wheel_pos();
+    double right_wheel_ans = D.right_wheel_pos();
+
+    REQUIRE(l_ans.x == Approx( 2.0 ).margin(EPSILON));
+    REQUIRE(l_ans.y == Approx( 2.41421).margin(EPSILON));
+    REQUIRE(ang_ans == Approx( 3.0*PI/4.0 ).margin(EPSILON));
+    REQUIRE(left_wheel_ans == Approx( 0 ).margin(EPSILON));
+    REQUIRE(right_wheel_ans == Approx( PI ).margin(EPSILON));
+}
+
+/// \brief Test apply twist with invalid twist
+TEST_CASE("DiffDrive apply twist w/ invalid twist", "[DiffDrive]") 
+{
+    //Init object
+    DiffDrive D{2.0, 1.0, PI/4.0, 2.0, 1.0};
+    Twist2D B{PI/2.0, 3.0, 3.0};
+    //Inv Kin
+    REQUIRE_THROWS(D.apply_twist(B));
 }
