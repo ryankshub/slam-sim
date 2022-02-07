@@ -1,0 +1,8 @@
+# Request/Response for resetting the odometry to requested configuration
+# Sets the robot to x,y,theta
+
+float64 x
+float64 y
+float64 theta
+---
+# Empty Response

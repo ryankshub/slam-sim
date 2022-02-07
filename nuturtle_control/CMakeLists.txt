@@ -8,6 +8,7 @@ project(nuturtle_control)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  message_generation
   nuturtlebot_msgs
   roscpp
   std_msgs
@@ -54,11 +55,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  PoseConfig.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -68,10 +68,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs  # Or other packages containing msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -107,7 +107,7 @@ catkin_package(
 #  LIBRARIES nuturtle_control
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
-   CATKIN_DEPENDS roscpp std_msgs
+   CATKIN_DEPENDS message_runtime roscpp std_msgs
 )
 
 ###########
@@ -135,7 +135,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(turtle_interface src/turtle_interface.cpp)
-
+add_executable(odometry src/odometry.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -147,18 +147,23 @@ add_executable(turtle_interface src/turtle_interface.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(turtle_interface
+  ${catkin_LIBRARIES}
+  turtlelib
+)
+
+target_link_libraries(odometry
   ${catkin_LIBRARIES}
   turtlelib
 )
 
 # Compiler options
 # enable C++ 17
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17) 
-
+target_compile_features(turtle_interface PUBLIC cxx_std_17) 
+target_compile_features(odometry PUBLIC cxx_std_17) 
 # warnings are your friend!
-target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
-
+target_compile_options(turtle_interface PUBLIC -Wall -Wextra)
+target_compile_options(odometry PUBLIC -Wall -Wextra)
 #############
 ## Install ##
 #############
@@ -175,7 +180,7 @@ target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
-install(TARGETS turtle_interface
+install(TARGETS odometry turtle_interface
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
