@@ -14,6 +14,7 @@
 
 //Project include
 #include "turtlelib/diff_drive.hpp"
+#include "turtlelib/rigid2d.hpp"
 
 //C++ includes
 #include <vector>
@@ -156,6 +157,7 @@ int main(int argc, char *argv[])
 
     //Init DiffDrive object
     diff_drive.set_wheel_config(track_width, wheel_radius);
+    
     //Init joint states
     joint_states.name.push_back("wheel_left_joint");
     joint_states.name.push_back("wheel_right_joint");
@@ -163,6 +165,7 @@ int main(int argc, char *argv[])
     joint_states.position.push_back(0.0);
     joint_states.velocity.push_back(0.0);
     joint_states.velocity.push_back(0.0);
+    
     //Set up Rate object
     ros::Rate loop_rate(DEFAULT_RATE);
 

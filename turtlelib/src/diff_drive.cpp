@@ -103,13 +103,8 @@ namespace turtlelib {
     //DiffDrive apply fw kinematics
     DiffDrive & DiffDrive::apply_fw_kin(const double left_pos, const double right_pos)
     {
-        // Get wheel velocities
-        double left_vel = left_pos - mLw_rad;
-        double right_vel = right_pos - mRw_rad;
         // Get Body Twist
-        double theta_dot = (mWheel_rad/mWheel_track)*(right_vel - left_vel);
-        double x_dot = (0.5*mWheel_rad)*(left_vel + right_vel);
-        Twist2D body_twist{theta_dot, x_dot, 0.0};
+        Twist2D body_twist = cal_fw_kin(left_pos, right_pos);
 
         //Integrate Twist
         Transform2D motion = integrate_twist(body_twist);
@@ -126,6 +121,18 @@ namespace turtlelib {
         mY_m = mY_m + q.y_dot;
 
         return *this;
+    }
+
+    //DiffDrive cal fw kinematics
+    Twist2D DiffDrive::cal_fw_kin(const double left_pos, const double right_pos)
+    {
+        // Get wheel velocities
+        double left_vel = left_pos - mLw_rad;
+        double right_vel = right_pos - mRw_rad;
+        // Get Body Twist
+        double theta_dot = (mWheel_rad/mWheel_track)*(right_vel - left_vel);
+        double x_dot = (0.5*mWheel_rad)*(left_vel + right_vel);
+        return Twist2D{theta_dot, x_dot, 0.0};
     }
 
     //DiffDrive calculate inv kinematics

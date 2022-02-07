@@ -69,9 +69,15 @@ namespace turtlelib {
         DiffDrive & set_wheel_config(const double wheel_track, const double wheel_radius);
 
         /// \brief Given new wheel positions, updates the robot's location and angle
-        /// \param left_pos - new angle of left wheel
+        /// \param left_pos - new angle of the left wheel
         /// \param right_pos - new angle of the right wheel
         DiffDrive & apply_fw_kin(const double left_pos, const double right_pos);
+
+        /// \brief Given the new wheel positions, return the body twist of the robot
+        /// \param left_pos - new angle of the left wheel
+        /// \param right_pos - new angle of the right wheel
+        /// \return body twist of the robot. 
+        Twist2D cal_fw_kin(const double left_pos, const double right_pos);
 
         /// \brief Given a body twist, determine the wheel velocity to follow the twist
         /// \param twist_b - body twist robot attempts to follow

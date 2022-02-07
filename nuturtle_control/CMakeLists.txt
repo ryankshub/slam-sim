@@ -12,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   nuturtlebot_msgs
   roscpp
   std_msgs
+  tf2
+  tf2_ros
 )
 
 ## System dependencies are found with CMake's conventions
