@@ -2,12 +2,11 @@
 /// \brief Odometry publishes the odometry messages and odometry transform
 ///
 /// PARAMETERS:
-///   private (parameter scoped to node name):
-///     track_width (double) : distance between the robot's wheels 
-///     body_id (string): Name of the body frame of the robot (Required)
-///     odom_id (string): Name of the odometry frame (Defaulted to `odom`)
-///     wheel_left (string): Name of the left wheel joint (Required)
-///     wheel_right (string): Name of the right wheel joint (Required)
+///   track_width (double) : distance between the robot's wheels 
+///   body_id (string): Name of the body frame of the robot (Required)
+///   odom_id (string): Name of the odometry frame (Defaulted to `odom`)
+///   wheel_left (string): Name of the left wheel joint (Required)
+///   wheel_right (string): Name of the right wheel joint (Required)
 ///    
 /// PUBLISHES:
 ///
@@ -48,6 +47,10 @@ static std::string wheel_left = "";
 static std::string wheel_right = "";
 
 //Odometry's Callbacks
+
+/// \brief JointState subscriber callback fcn. Given the joint states
+/// update the robot's configuation and body_twist
+/// \param msg - contains joint state information
 void state_handler(const sensor_msgs::JointState& msg)
 {
     double left_wheel = Dodom.left_wheel_pos();
@@ -68,6 +71,8 @@ void state_handler(const sensor_msgs::JointState& msg)
     Dodom.apply_fw_kin(left_wheel, right_wheel);
 }
 
+/// \brief set_pose service callback fcn. Teleports the robot 
+/// to a given position. (Does not reset the twist)
 bool pose_service(nuturtle_control::PoseConfig::Request &req,
                   nuturtle_control::PoseConfig::Response &)
 {

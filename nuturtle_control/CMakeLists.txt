@@ -59,6 +59,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
+  CircleControl.srv
   PoseConfig.srv
 )
 
@@ -138,6 +139,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(turtle_interface src/turtle_interface.cpp)
 add_executable(odometry src/odometry.cpp)
+add_executable(circle src/circle.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -159,13 +161,19 @@ target_link_libraries(odometry
   turtlelib
 )
 
+target_link_libraries(circle
+  ${catkin_LIBRARIES}
+)
+
 # Compiler options
 # enable C++ 17
 target_compile_features(turtle_interface PUBLIC cxx_std_17) 
-target_compile_features(odometry PUBLIC cxx_std_17) 
+target_compile_features(odometry PUBLIC cxx_std_17)
+target_compile_features(circle PUBLIC cxx_std_17)  
 # warnings are your friend!
 target_compile_options(turtle_interface PUBLIC -Wall -Wextra)
 target_compile_options(odometry PUBLIC -Wall -Wextra)
+target_compile_options(circle PUBLIC -Wall -Wextra)
 #############
 ## Install ##
 #############
@@ -182,7 +190,7 @@ target_compile_options(odometry PUBLIC -Wall -Wextra)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
-install(TARGETS odometry turtle_interface
+install(TARGETS circle odometry turtle_interface
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -1,0 +1,6 @@
+# Request/Response for cirular trajectory of robot
+
+float64 velocity # angular velocity of the robot (rad/s)
+float64 radius # radius of the circle
+---
+# Empty Response
