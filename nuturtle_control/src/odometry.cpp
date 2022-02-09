@@ -50,25 +50,29 @@ static std::string wheel_right = "";
 
 /// \brief JointState subscriber callback fcn. Given the joint states
 /// update the robot's configuation and body_twist
+/// ignores empty joint state messages
 /// \param msg - contains joint state information
 void state_handler(const sensor_msgs::JointState& msg)
 {
-    double left_wheel = Dodom.left_wheel_pos();
-    double right_wheel = Dodom.right_wheel_pos();
-    //Parse updates
-    for (unsigned int i = 0; i < msg.name.size(); i++)
+    if (!msg.velocity.empty())
     {
-        if (msg.name.at(i) == wheel_left)
+        double left_wheel = Dodom.left_wheel_pos();
+        double right_wheel = Dodom.right_wheel_pos();
+        //Parse updates
+        for (unsigned int i = 0; i < msg.name.size(); i++)
         {
-            left_wheel += msg.velocity.at(i);
-        } else if (msg.name.at(i) == wheel_right) {
-            right_wheel += msg.velocity.at(i);
+            if (msg.name.at(i) == wheel_left)
+            {
+                left_wheel += msg.velocity.at(i);
+            } else if (msg.name.at(i) == wheel_right) {
+                right_wheel += msg.velocity.at(i);
+            }
         }
+        //Update body_twist
+        body_twist = Dodom.cal_fw_kin(left_wheel, right_wheel);
+        //Update configuration
+        Dodom.apply_fw_kin(left_wheel, right_wheel);
     }
-    //Update body_twist
-    body_twist = Dodom.cal_fw_kin(left_wheel, right_wheel);
-    //Update configuration
-    Dodom.apply_fw_kin(left_wheel, right_wheel);
 }
 
 /// \brief set_pose service callback fcn. Teleports the robot 

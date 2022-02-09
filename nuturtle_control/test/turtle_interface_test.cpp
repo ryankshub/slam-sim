@@ -28,18 +28,18 @@
 #include "ros/console.h"
 #include "sensor_msgs/JointState.h"
 
-//Turtle_interface Constants
-static const double TEST_SLEEP = 1.0/2.0;
+//Turtle_interface_Test Constants
+static const double TEST_SLEEP = 1.0;
 static const std::uint32_t QUEUE_SIZE = 1000;
 static const double EPSILON = 1.0e-12;
 
-//Turtle_interface Variables
+//Turtle_interface_Test Variables
 static turtlelib::DiffDrive diff_drive;
 static std::vector<double> wheel_vels = {0, 0};
 static nuturtlebot_msgs::WheelCommands test_wheel_cmds;
 static sensor_msgs::JointState test_joint_states;
 
-//Turtle_Interface Callback
+//Turtle_Interface_Test Callback
 
 /// \brief Callback fcn handling wheel_cmd msgs. Grabs values for testing
 /// \param msg - nuturtlebot_msgs::WheelCommands for encoder ticks
@@ -281,7 +281,7 @@ TEST_CASE("Turtle Interface Test: Sensor_Encoded", "[turtle_interface_test]")
         test_sensor.stamp = ros::Time::now();
         test_sensor.left_encoder = 1024;
         test_sensor.right_encoder = 3413;
-        
+
         twist_pub.publish(test_twist);
         sensor_pub.publish(test_sensor);
         // Give node time to respond

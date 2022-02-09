@@ -76,6 +76,7 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
   std_msgs  # Or other packages containing msgs
+  nuturtlebot_msgs
 )
 
 ################################################
@@ -228,6 +229,7 @@ install(TARGETS circle odometry turtle_interface
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 if(CATKIN_ENABLE_TESTING)
+  # Test for turtle_interface
   catch_add_rostest_node(test_turtle_interface test/turtle_interface_test.cpp)
   
   target_link_libraries(test_turtle_interface
@@ -235,6 +237,14 @@ if(CATKIN_ENABLE_TESTING)
     turtlelib
   )
   add_rostest(test/turtle_interface.test)
+  # Test for odometry
+  catch_add_rostest_node(test_odometry test/turtle_odom_test_node.cpp)
+
+  target_link_libraries(test_odometry
+    ${catkin_LIBRARIES}
+    turtlelib
+  )
+  add_rostest(test/launch_odom.test)
 endif()
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
