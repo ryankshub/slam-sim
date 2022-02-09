@@ -23,6 +23,7 @@
 
 //Circle Constants
 static const std::uint32_t QUEUE_SIZE = 1000;
+static const int DEFAULT_FREQ = 100;
 
 //Circle states
 enum class State { STOP,
@@ -82,7 +83,7 @@ int main(int argc, char *argv[])
     ros::NodeHandle pri_nh("~");
 
     //Grab Params
-    pri_nh.param("frequency", frequency, 100);
+    pri_nh.param("frequency", frequency, DEFAULT_FREQ);
 
     //Make ROS objects
     const auto cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", QUEUE_SIZE);

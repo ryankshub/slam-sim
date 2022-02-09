@@ -151,7 +151,9 @@ add_executable(circle src/circle.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(turtle_interface ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(odometry ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(circle ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(turtle_interface
@@ -236,7 +238,8 @@ if(CATKIN_ENABLE_TESTING)
     ${catkin_LIBRARIES}
     turtlelib
   )
-  add_rostest(test/turtle_interface.test)
+  add_rostest(launch/turtle_interface.test)
+
   # Test for odometry
   catch_add_rostest_node(test_odometry test/turtle_odom_test_node.cpp)
 
@@ -244,7 +247,15 @@ if(CATKIN_ENABLE_TESTING)
     ${catkin_LIBRARIES}
     turtlelib
   )
-  add_rostest(test/launch_odom.test)
+  add_rostest(launch/launch_odom.test)
+
+  # Test for circle
+  add_executable(circle_caller test/circle_caller.cpp)
+  add_dependencies(circle_caller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+  target_link_libraries(circle_caller
+    ${catkin_LIBRARIES}
+  )
+  add_rostest(launch/turtle_circle.test)
 endif()
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
