@@ -1,0 +1,8 @@
+<launch>
+
+    <!-- Add test parameters -->
+    <rosparam command="load" file="$(find nuturtle_control)/test/config/test_params.yaml"/>
+    <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface" output="screen"/>
+    <test test-name="test_turtle_interface" pkg="nuturtle_control" type="test_turtle_interface"/>
+
+</launch>

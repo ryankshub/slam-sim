@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
     }
 
     //ROS Objects
-    const auto state_sub = nh.subscribe("joint_state", QUEUE_SIZE, state_handler);
+    const auto state_sub = nh.subscribe("joint_states", QUEUE_SIZE, state_handler);
     const auto odom_pub = nh.advertise<nav_msgs::Odometry>("odom", QUEUE_SIZE);
     const auto pose_srv = nh.advertiseService("set_pose", pose_service);
     geometry_msgs::TransformStamped Tob;

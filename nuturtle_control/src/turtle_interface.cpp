@@ -17,8 +17,9 @@
 #include "turtlelib/rigid2d.hpp"
 
 //C++ includes
-#include <vector>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 //3rd-party includes
 #include "geometry_msgs/Twist.h"
@@ -33,6 +34,8 @@ static const int DEFAULT_RATE = 500;
 static const std::uint32_t QUEUE_SIZE = 1000;
 static const int LEFT_WHEEL = 0;
 static const int RIGHT_WHEEL = 1;
+static const std::string DEFAULT_LEFT_JOINT = "wheel_left_joint";
+static const std::string DEFAULT_RIGHT_JOINT = "wheel_right_joint";
 
 //Turtle_interface Variables
 static turtlelib::DiffDrive diff_drive;
@@ -52,7 +55,6 @@ static double encoder_ticks_to_rad = 0.0;
 /// \param msg - geometry_msgs::Twist representing body_twist velocity
 void twist_handler(const geometry_msgs::Twist& msg)
 {   
-    
     bool invalid_msg = false;
     //Set up twist
     turtlelib::Twist2D body_twist{msg.angular.z,
@@ -101,9 +103,8 @@ void sensor_handler(const nuturtlebot_msgs::SensorData& msg)
     new_joint_states = true;
     //Header Stamp
     joint_states.header.stamp = msg.stamp;
-
-    joint_states.position.at(LEFT_WHEEL) = msg.left_encoder*encoder_ticks_to_rad;
-    joint_states.position.at(RIGHT_WHEEL) = msg.right_encoder*encoder_ticks_to_rad;
+    joint_states.position.at(LEFT_WHEEL) = turtlelib::normalize_angle(msg.left_encoder*encoder_ticks_to_rad);
+    joint_states.position.at(RIGHT_WHEEL) = turtlelib::normalize_angle(msg.right_encoder*encoder_ticks_to_rad);
 
 }
 
@@ -118,6 +119,8 @@ int main(int argc, char *argv[])
     //Get Params
     double wheel_radius = 0.0;
     double track_width = 0.0;
+    std::string wheel_left = "";
+    std::string wheel_right = "";
     // Get Params
     if (!nh.getParam("wheel_radius", wheel_radius))
     {
@@ -149,18 +152,23 @@ int main(int argc, char *argv[])
         return(1); //return 1 to indicate error
     }
 
+    //Get wheel names
+    nh.param("wheel_left", wheel_left, DEFAULT_LEFT_JOINT);
+    nh.param("wheel_right", wheel_right, DEFAULT_RIGHT_JOINT);
+
+
     //Make ROS objects
     const auto twist_sub = nh.subscribe("cmd_vel", QUEUE_SIZE, twist_handler);
     const auto sensor_sub = nh.subscribe("sensor_data", QUEUE_SIZE, sensor_handler);
     const auto wheel_pub = nh.advertise<nuturtlebot_msgs::WheelCommands>("wheel_cmd", QUEUE_SIZE);
-    const auto state_pub = nh.advertise<sensor_msgs::JointState>("joint_state", QUEUE_SIZE);
+    const auto state_pub = nh.advertise<sensor_msgs::JointState>("joint_states", QUEUE_SIZE);
 
     //Init DiffDrive object
     diff_drive.set_wheel_config(track_width, wheel_radius);
     
     //Init joint states
-    joint_states.name.push_back("wheel_left_joint");
-    joint_states.name.push_back("wheel_right_joint");
+    joint_states.name.push_back(wheel_left);
+    joint_states.name.push_back(wheel_right);
     joint_states.position.push_back(0.0);
     joint_states.position.push_back(0.0);
     joint_states.velocity.push_back(0.0);

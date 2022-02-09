@@ -8,9 +8,11 @@ project(nuturtle_control)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  catch_ros
   message_generation
   nuturtlebot_msgs
   roscpp
+  rostest
   std_msgs
   tf2
   tf2_ros
@@ -225,6 +227,14 @@ install(TARGETS circle odometry turtle_interface
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
-
+if(CATKIN_ENABLE_TESTING)
+  catch_add_rostest_node(test_turtle_interface test/turtle_interface_test.cpp)
+  
+  target_link_libraries(test_turtle_interface
+    ${catkin_LIBRARIES}
+    turtlelib
+  )
+  add_rostest(test/turtle_interface.test)
+endif()
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
