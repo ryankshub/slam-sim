@@ -1,0 +1,47 @@
+<!-- Launchfile to start robot motion-->
+<launch>
+    <!-- Arguments -->
+    <arg name="cmd_src" default="none" doc="The source of the cmd_vel command"/>
+    <arg name="robot" default="nusim" doc="Whether the robot is running in simulation or real world"/>
+    <arg name="use_rviz" default="false" doc="Set true to display rviz"/>
+
+
+    <!-- Parse cmd_src -->
+    <group if="$(eval cmd_src == circle)">
+        <node name="circle" pkg="nuturtle_control" type="circle" if="$(eval cmd_src == circle)"/>
+    </group>
+
+    <group if="$(eval cmd_src == teleop)">
+        <include "$(find turtlebot3_teleop)/launch/turtlebot3_teleop_key.launch"/>
+    </group>
+
+    <!-- Parse robot -->
+    <group if="$(eval robot == nusim)">
+        <include "$(find nusim)/launch/nusim.launch">
+            <arg name='color' value='red'/>
+        </include>
+        <node pkg="nuturtle_control" type="odometry" name="odometry" ns="red"/>
+        <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface" ns="red"/>
+    </group>
+
+    <group if="$(eval robot == localhost)">
+        <!-- params --> 
+        <param name="body_id" value="blue-base_footprint" ns="blue"/>
+        <param name="wheel_left" value="blue-wheel_left_joint" ns="blue"/>
+        <param name="wheel_right" value="blue-wheel_right_joint" ns="blue"/>
+        <param name="odom_id" value="odom" ns="blue"/>
+        <!-- static transform publisher-->
+        <node pkg="tf2_ros" type="static_transform_publisher" name="world_odom_broadcaster" 
+            args="0 0 0 0 0 0 world $(eval odom_id)" ns="blue"/>
+        
+        <include "$(find nuturtle_description)/launch/load.launch">
+            <arg name="use_rviz" value='$(arg use_rviz)'/>
+            <arg name='color' value='blue'/>
+        </include>
+
+        <node pkg="nuturtle_control" type="odometry" name="odometry" ns="blue"/>
+        <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface" ns="blue"/>
+    </group>
+
+
+</launch>
