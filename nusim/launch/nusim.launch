@@ -2,13 +2,14 @@
 <launch>
     <!-- Arguments -->
     <arg name='color' default='red' doc="The robot's color; the options red is only supported for now"/> 
+    <arg name='use_jsp' default='false' doc="Set true for the node to publish joint states"/>
   
     <!-- Load params -->
     <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
     <!-- Include files -->
     <include file="$(find nuturtle_description)/launch/load.launch">
         <arg name='use_rviz' value='false'/>
-        <arg name='use_jsp' value='false'/>
+        <arg name='use_jsp' value='$(arg use_jsp)'/>
         <arg name='color' value='$(arg color)'/>
     </include>
 

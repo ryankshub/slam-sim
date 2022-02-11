@@ -30,13 +30,15 @@
 //RKS
 
 //Project include
-
+#include "turtlelib/diff_drive.hpp"
 //C++ includes
 #include <cstdint>
 #include <vector>
 //3rd-party includes
 #include "geometry_msgs/TransformStamped.h"
 #include "nusim/Teleport.h"
+#include "nuturtlebot_msgs/SensorData.h"
+#include "nuturtlebot_msgs/WheelCommands.h"
 #include "ros/ros.h"
 #include "sensor_msgs/JointState.h"
 #include "std_msgs/UInt64.h"
@@ -56,20 +58,23 @@ static const double DEFAULT_THETA = 0.0;
 static const double DEFAULT_RADIUS = 0.0;
 static const std::vector<double> DEFAULT_OBS_LIST;
 static const double CYLINDER_HEIGHT = 0.25;
+static const double WALL_THICKNESS = 0.1;
+static const double WALL_HEIGHT = 0.25;
 
 // Nusim Node's variables
 static std::uint64_t timestep = 0;
 static int rate;
-static sensor_msgs::JointState joint_states;
-static double x;
 static double x_init;
-static double y;
 static double y_init;
-static double theta;
 static double theta_init;
+static double encoder_ticks_to_rad;
+static turtlelib::DiffDrive diff_drive;
+static nuturtlebot_msgs::SensorData sensor_data;
 static std::vector<double> obs_x;
 static std::vector<double> obs_y;
-static double obs_radius; 
+static double obs_radius;
+static double x_length;
+static double y_length; 
 
 //Nusim Node's callbacks
 
@@ -82,9 +87,7 @@ bool reset(std_srvs::Empty::Request &,
            std_srvs::Empty::Response &)
 {
     timestep = 0;
-    x = x_init;
-    y = y_init;
-    theta = theta_init;
+    diff_drive.set_configuration(theta_init, x_init, y_init);
     return true;
 }
 
@@ -96,10 +99,21 @@ bool reset(std_srvs::Empty::Request &,
 bool teleport(nusim::Teleport::Request &req,
               nusim::Teleport::Response &)
 {
-    x = req.x;
-    y = req.y;
-    theta = req.theta;
+    diff_drive.set_configuration(req.theta, req.x, req.y);
     return true;
+}
+
+/// \brief Callback fcn to wheel_cmd subscriber. Grabs the current
+/// wheel velocity commands in ticks and updates the internal position
+/// of the robots and encoder angles
+void wheel_cmd_handler(const nuturtlebot_msgs::WheelCommands& msg)
+{
+    sensor_data.left_encoder += msg.left_velocity;
+    sensor_data.right_encoder += msg.right_velocity;
+    double new_left_wheel_rad = sensor_data.left_encoder*encoder_ticks_to_rad;
+    double new_right_wheel_rad = sensor_data.left_encoder*encoder_ticks_to_rad;
+    diff_drive.apply_fw_kin(new_left_wheel_rad, new_right_wheel_rad);
+
 }
 
 //Nusim Main Function
@@ -111,22 +125,56 @@ int main(int argc, char *argv[])
     ros::NodeHandle pub_nh;
     tf2_ros::TransformBroadcaster br; 
 
+    double wheel_radius = 0.0;
+    double track_width = 0.0;
+
     //Get Params
     nh.param("rate", rate, DEFAULT_RATE);
-    nh.param("x0", x, DEFAULT_X);
-    nh.param("y0", y, DEFAULT_Y);
-    nh.param("theta0", theta, DEFAULT_THETA);
-    x_init = x;
-    y_init = y;
-    theta_init = theta;
+    nh.param("x0", x_init, DEFAULT_X);
+    nh.param("y0", y_init, DEFAULT_Y);
+    nh.param("theta0", theta_init, DEFAULT_THETA);
     nh.param("obstacles/obs_x", obs_x, DEFAULT_OBS_LIST);
     nh.param("obstacles/obs_y", obs_y, DEFAULT_OBS_LIST);
     nh.param("obstacles/radius", obs_radius, DEFAULT_RADIUS);
+    
+    //Get Arena Param
+    if(!nh.getParam("x_length", x_length))
+    {
+        ROS_ERROR_STREAM("Cannot find x_length for arena");
+        return(1);
+    }
+
+    if(!nh.getParam("y_length", y_length))
+    {
+        ROS_ERROR_STREAM("Cannot find y_length for arena");
+        return(1);
+    }
+
+    //Get DiffDrive params
+    if (!pub_nh.getParam("red/wheel_radius", wheel_radius))
+    {
+        ROS_ERROR_STREAM("Cannot find wheel_radius"); 
+        return(1); //return 1 to indicate error
+    }
+
+    if (!pub_nh.getParam("red/track_width", track_width))
+    {
+        ROS_ERROR_STREAM("Cannot find track_width"); 
+        return(1); //return 1 to indicate error
+    }
+
+    if (!pub_nh.getParam("red/encoder_ticks_to_rad", encoder_ticks_to_rad))
+    {
+        ROS_ERROR_STREAM("Cannot find encoder_ticks_to_rad"); 
+        return(1); //return 1 to indicate error
+    }
 
     //Build ROS Objects
     const auto timestep_pub = nh.advertise<std_msgs::UInt64>("timestep", QUEUE_SIZE);
-    const auto joint_state_pub = pub_nh.advertise<sensor_msgs::JointState>("red/joint_states", QUEUE_SIZE);
+    const auto encoder_pub = nh.advertise<nuturtlebot_msgs::SensorData>("red/sensor_data", QUEUE_SIZE);
     const auto cylinder_pub = nh.advertise<visualization_msgs::MarkerArray>("obstacles", QUEUE_SIZE, true);
+    const auto walls_pub = nh.advertise<visualization_msgs::MarkerArray>("walls", QUEUE_SIZE, true); 
+    const auto wheel_cmd_sub = nh.subscribe("red/wheel_cmd", QUEUE_SIZE, wheel_cmd_handler);
     const auto reset_srv = nh.advertiseService("reset", reset);
     const auto teleport_srv = nh.advertiseService("teleport", teleport);
     geometry_msgs::TransformStamped ts;
@@ -134,13 +182,11 @@ int main(int argc, char *argv[])
     //Set up Rate object
     ros::Rate loop_rate(rate);
 
-    //Set up joint states(they don't change here)
-    joint_states.name.push_back("red-wheel_left_joint");
-    joint_states.name.push_back("red-wheel_right_joint");
-    joint_states.position.push_back(0.0);
-    joint_states.position.push_back(0.0);
+    //Init diff drive
+    diff_drive.set_wheel_config(track_width, wheel_radius);
+    diff_drive.set_configuration(theta_init, x_init, y_init);
 
-    //Publish Markers
+    //Publish Obstacle Markers
     visualization_msgs::MarkerArray cylinders;
     if (obs_radius > 0.0 && obs_x.size() > 0.0 && obs_x.size() == obs_y.size())
     {
@@ -174,22 +220,123 @@ int main(int argc, char *argv[])
 
     cylinder_pub.publish(cylinders);
 
+
+    //Publish Wall Markers
+    visualization_msgs::MarkerArray walls;        
+    //Front Wall
+    visualization_msgs::Marker front_wall;
+    front_wall.header.stamp = ros::Time::now();
+    front_wall.header.frame_id = "world";
+    front_wall.ns = "walls";
+    front_wall.id = 0;
+    front_wall.type = visualization_msgs::Marker::CUBE;
+    front_wall.action = visualization_msgs::Marker::ADD;
+    front_wall.pose.position.x = x_length/2.0 + WALL_THICKNESS/2.0;
+    front_wall.pose.position.y = 0;
+    front_wall.pose.position.z = WALL_HEIGHT/2.0;
+    front_wall.pose.orientation.x = 0.0;
+    front_wall.pose.orientation.y = 0.0;
+    front_wall.pose.orientation.z = 0.0;
+    front_wall.pose.orientation.w = 1.0;
+    front_wall.scale.x = WALL_THICKNESS;
+    front_wall.scale.y = y_length + 2.0*WALL_THICKNESS;
+    front_wall.scale.z = WALL_HEIGHT;
+    front_wall.color.r = 1.0;
+    front_wall.color.g = 0.0;
+    front_wall.color.b = 0.0;
+    front_wall.color.a = 1.0;
+    walls.markers.push_back(front_wall);
+
+    //Back Wall
+    visualization_msgs::Marker back_wall;
+    back_wall.header.stamp = ros::Time::now();
+    back_wall.header.frame_id = "world";
+    back_wall.ns = "walls";
+    back_wall.id = 1;
+    back_wall.type = visualization_msgs::Marker::CUBE;
+    back_wall.action = visualization_msgs::Marker::ADD;
+    back_wall.pose.position.x = -x_length/2.0 - WALL_THICKNESS/2.0;
+    back_wall.pose.position.y = 0;
+    back_wall.pose.position.z = WALL_HEIGHT/2.0;
+    back_wall.pose.orientation.x = 0.0;
+    back_wall.pose.orientation.y = 0.0;
+    back_wall.pose.orientation.z = 0.0;
+    back_wall.pose.orientation.w = 1.0;
+    back_wall.scale.x = WALL_THICKNESS;
+    back_wall.scale.y = y_length + 2.0*WALL_THICKNESS;
+    back_wall.scale.z = WALL_HEIGHT;
+    back_wall.color.r = 1.0;
+    back_wall.color.g = 0.0;
+    back_wall.color.b = 0.0;
+    back_wall.color.a = 1.0;
+    walls.markers.push_back(back_wall);
+
+    //Left Wall
+    visualization_msgs::Marker left_wall;
+    left_wall.header.stamp = ros::Time::now();
+    left_wall.header.frame_id = "world";
+    left_wall.ns = "walls";
+    left_wall.id = 2;
+    left_wall.type = visualization_msgs::Marker::CUBE;
+    left_wall.action = visualization_msgs::Marker::ADD;
+    left_wall.pose.position.x = 0;
+    left_wall.pose.position.y = -y_length/2.0 - WALL_THICKNESS/2.0;
+    left_wall.pose.position.z = WALL_HEIGHT/2.0;
+    left_wall.pose.orientation.x = 0.0;
+    left_wall.pose.orientation.y = 0.0;
+    left_wall.pose.orientation.z = 0.0;
+    left_wall.pose.orientation.w = 1.0;
+    left_wall.scale.x = x_length + 2.0*WALL_THICKNESS;
+    left_wall.scale.y = WALL_THICKNESS;
+    left_wall.scale.z = WALL_HEIGHT;
+    left_wall.color.r = 1.0;
+    left_wall.color.g = 0.0;
+    left_wall.color.b = 0.0;
+    left_wall.color.a = 1.0;
+    walls.markers.push_back(left_wall);
+
+    //Right Wall
+    visualization_msgs::Marker right_wall;
+    right_wall.header.stamp = ros::Time::now();
+    right_wall.header.frame_id = "world";
+    right_wall.ns = "walls";
+    right_wall.id = 3;
+    right_wall.type = visualization_msgs::Marker::CUBE;
+    right_wall.action = visualization_msgs::Marker::ADD;
+    right_wall.pose.position.x = 0;
+    right_wall.pose.position.y = y_length/2.0 + WALL_THICKNESS/2.0;
+    right_wall.pose.position.z = WALL_HEIGHT/2.0;
+    right_wall.pose.orientation.x = 0.0;
+    right_wall.pose.orientation.y = 0.0;
+    right_wall.pose.orientation.z = 0.0;
+    right_wall.pose.orientation.w = 1.0;
+    right_wall.scale.x = x_length + 2.0*WALL_THICKNESS;
+    right_wall.scale.y = WALL_THICKNESS;
+    right_wall.scale.z = WALL_HEIGHT;
+    right_wall.color.r = 1.0;
+    right_wall.color.g = 0.0;
+    right_wall.color.b = 0.0;
+    right_wall.color.a = 1.0;
+    walls.markers.push_back(right_wall);
+
+    //Pub Walls
+    walls_pub.publish(walls);
+
     //Main loop
     while(ros::ok())
     {
         //Update data
         timestep++; //this means we start at T = 1
-        joint_states.header.stamp = ros::Time::now();
 
         //Populate transform
         ts.header.stamp = ros::Time::now();
         ts.header.frame_id = "world";
         ts.child_frame_id = "red-base_footprint";
-        ts.transform.translation.x = x;
-        ts.transform.translation.y = y;
+        ts.transform.translation.x = diff_drive.location().x;
+        ts.transform.translation.y = diff_drive.location().y;
         ts.transform.translation.z = 0.0;
         tf2::Quaternion q;
-        q.setRPY(0, 0, theta);
+        q.setRPY(0, 0, diff_drive.theta());
         ts.transform.rotation.x = q.x();
         ts.transform.rotation.y = q.y();
         ts.transform.rotation.z = q.z();
@@ -201,7 +348,7 @@ int main(int argc, char *argv[])
         std_msgs::UInt64 msg;
         msg.data = timestep;
         timestep_pub.publish(msg);
-        joint_state_pub.publish(joint_states);
+        encoder_pub.publish(sensor_data);
 
         //Grab data
         ros::spinOnce();

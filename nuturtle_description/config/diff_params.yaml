@@ -2,6 +2,6 @@
 wheel_radius: 0.033 # Radius of wheel (m)
 track_width: 0.16 # Distance between wheels (m)
 collision_radius: 0.11 # Collision radius of the robot
-motor_cmd_max: 265 
+motor_cmd_max: 256 
 motor_cmd_to_rads: 0.024
 encoder_ticks_to_rad: 0.001534

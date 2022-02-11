@@ -17,9 +17,13 @@
 
     <!-- Parse robot -->
     <group if="$(eval robot == nusim)">
-        <include "$(find nusim)/launch/nusim.launch">
-            <arg name='color' value='red'/>
-        </include>
+        <!-- params --> 
+        <param name="body_id" value="blue-base_footprint" ns="red"/>
+        <param name="wheel_left" value="blue-wheel_left_joint" ns="red"/>
+        <param name="wheel_right" value="blue-wheel_right_joint" ns="red"/>
+        <param name="odom_id" value="odom" ns="red"/>
+        <!-- Nodes -->
+        <node pkg="nusim" type="nusim" name="nusim"/> <!--NUSIM IS SPECIAL; DO NOT SCOPE UNDER COLOR-->
         <node pkg="nuturtle_control" type="odometry" name="odometry" ns="red"/>
         <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface" ns="red"/>
     </group>
