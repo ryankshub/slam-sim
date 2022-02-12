@@ -3,49 +3,73 @@
     <!-- Arguments -->
     <arg name="cmd_src" default="none" doc="The source of the cmd_vel command"/>
     <arg name="robot" default="nusim" doc="Whether the robot is running in simulation or real world"/>
-    <arg name="use_rviz" default="false" doc="Set true to display rviz"/>
-
+    <arg name="use_rviz" default="true" doc="Set true to display rviz"/>
 
     <!-- Parse cmd_src -->
-    <group if="$(eval cmd_src == circle)">
-        <node name="circle" pkg="nuturtle_control" type="circle" if="$(eval cmd_src == circle)"/>
+    <group if="$(eval cmd_src == 'circle')">
+        <node name="circle" pkg="nuturtle_control" type="circle"/>
+    </group>
+    
+    <group if="$(eval cmd_src == 'teleop')">
+        <include file="$(find turtlebot3_teleop)/launch/turtlebot3_teleop_key.launch"/>
     </group>
 
-    <group if="$(eval cmd_src == teleop)">
-        <include "$(find turtlebot3_teleop)/launch/turtlebot3_teleop_key.launch"/>
-    </group>
-
+    <!--Nodes-->
+    <node pkg="nuturtle_control" type="odometry" name="odometry"/>
+    <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface"/>
+    <!--Static Publisher-->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="world_odom_broadcaster" 
+            args="0 0 0 0 0 0 world odom"/>
+    
     <!-- Parse robot -->
-    <group if="$(eval robot == nusim)">
-        <!-- params --> 
-        <param name="body_id" value="blue-base_footprint" ns="red"/>
-        <param name="wheel_left" value="blue-wheel_left_joint" ns="red"/>
-        <param name="wheel_right" value="blue-wheel_right_joint" ns="red"/>
-        <param name="odom_id" value="odom" ns="red"/>
-        <!-- Nodes -->
-        <node pkg="nusim" type="nusim" name="nusim"/> <!--NUSIM IS SPECIAL; DO NOT SCOPE UNDER COLOR-->
-        <node pkg="nuturtle_control" type="odometry" name="odometry" ns="red"/>
-        <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface" ns="red"/>
+    <group if="$(eval robot == 'nusim')">
+        <!-- Nusim -->
+        <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
+        <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
+        <!-- remap nusim topics-->
+        <remap from="red/sensor_data" to="sensor_data"/>
+        <remap from="red/wheel_cmd" to="wheel_cmd"/>
+        <param name="nusim/red_space" type="bool" value="false"/>
+        <node pkg="nusim" type="nusim" name="nusim"/>
+        
+        <!--Params for odometry-->
+        <param name="body_id" value="blue-base_footprint"/>
+        <param name="wheel_left" value="blue-wheel_left_joint"/>
+        <param name="wheel_right" value="blue-wheel_right_joint"/>
+        <param name="odom_id" value="odom"/>
+        
+        <!--Robots-->
+        <param name="red/robot_description" 
+            command="xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:='red'"/>
+        <param name="robot_description" 
+            command="xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:='blue'"/>
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" ns='red'/>
+        <node pkg="joint_state_publisher" type="joint_state_publisher" 
+            name="joint_state_publisher" ns="red"/>
     </group>
 
-    <group if="$(eval robot == localhost)">
-        <!-- params --> 
+    <!-- <group if="$(eval robot == localhost)">
+        params
         <param name="body_id" value="blue-base_footprint" ns="blue"/>
         <param name="wheel_left" value="blue-wheel_left_joint" ns="blue"/>
         <param name="wheel_right" value="blue-wheel_right_joint" ns="blue"/>
         <param name="odom_id" value="odom" ns="blue"/>
-        <!-- static transform publisher-->
+        static transform publisher
         <node pkg="tf2_ros" type="static_transform_publisher" name="world_odom_broadcaster" 
             args="0 0 0 0 0 0 world $(eval odom_id)" ns="blue"/>
         
         <include "$(find nuturtle_description)/launch/load.launch">
-            <arg name="use_rviz" value='$(arg use_rviz)'/>
+            <arg name="use_rviz" value='false'/>
             <arg name='color' value='blue'/>
         </include>
 
         <node pkg="nuturtle_control" type="odometry" name="odometry" ns="blue"/>
         <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface" ns="blue"/>
-    </group>
+    </group> -->
 
+    <!-- Open Rviz-->
+    <node pkg="rviz" type="rviz" name="rviz" required="true" if="$(arg use_rviz)"
+        args="-d $(find nuturtle_control)/config/odom.rviz"/>
 
 </launch>

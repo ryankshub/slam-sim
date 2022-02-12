@@ -60,6 +60,7 @@ static const std::vector<double> DEFAULT_OBS_LIST;
 static const double CYLINDER_HEIGHT = 0.25;
 static const double WALL_THICKNESS = 0.1;
 static const double WALL_HEIGHT = 0.25;
+static const bool DEFAULT_SIM_SPACE = true;
 
 // Nusim Node's variables
 static std::uint64_t timestep = 0;
@@ -127,6 +128,7 @@ int main(int argc, char *argv[])
 
     double wheel_radius = 0.0;
     double track_width = 0.0;
+    bool red_space = true;
 
     //Get Params
     nh.param("rate", rate, DEFAULT_RATE);
@@ -137,44 +139,68 @@ int main(int argc, char *argv[])
     nh.param("obstacles/obs_y", obs_y, DEFAULT_OBS_LIST);
     nh.param("obstacles/radius", obs_radius, DEFAULT_RADIUS);
     
+    nh.param("red_space", red_space, DEFAULT_SIM_SPACE);
+
     //Get Arena Param
     if(!nh.getParam("x_length", x_length))
     {
-        ROS_ERROR_STREAM("Cannot find x_length for arena");
+        ROS_ERROR_STREAM("Nusim: Cannot find x_length for arena");
         return(1);
     }
 
     if(!nh.getParam("y_length", y_length))
     {
-        ROS_ERROR_STREAM("Cannot find y_length for arena");
+        ROS_ERROR_STREAM("Nusim: Cannot find y_length for arena");
         return(1);
     }
 
     //Get DiffDrive params
-    if (!pub_nh.getParam("red/wheel_radius", wheel_radius))
+    if (red_space) //If our parameters are in red namespace
     {
-        ROS_ERROR_STREAM("Cannot find wheel_radius"); 
+        if (!pub_nh.getParam("red/wheel_radius", wheel_radius))
+        {
+        ROS_ERROR_STREAM("Nusim: Cannot find wheel_radius"); 
         return(1); //return 1 to indicate error
+        }
+
+        if (!pub_nh.getParam("red/track_width", track_width))
+        {
+        ROS_ERROR_STREAM("Nusim: Cannot find track_width"); 
+        return(1); //return 1 to indicate error
+        }
+
+        if (!pub_nh.getParam("red/encoder_ticks_to_rad", encoder_ticks_to_rad))
+        {
+        ROS_ERROR_STREAM("Nusim: Cannot find encoder_ticks_to_rad"); 
+        return(1); //return 1 to indicate error
+        } 
+    } else { //If parameters are not in red space
+        if (!pub_nh.getParam("wheel_radius", wheel_radius))
+        {
+        ROS_ERROR_STREAM("Nusim: Cannot find wheel_radius"); 
+        return(1); //return 1 to indicate error
+        }
+
+        if (!pub_nh.getParam("track_width", track_width))
+        {
+        ROS_ERROR_STREAM("Nusim: Cannot find track_width"); 
+        return(1); //return 1 to indicate error
+        }
+
+        if (!pub_nh.getParam("encoder_ticks_to_rad", encoder_ticks_to_rad))
+        {
+        ROS_ERROR_STREAM("Nusim: Cannot find encoder_ticks_to_rad"); 
+        return(1); //return 1 to indicate error
+        } 
     }
 
-    if (!pub_nh.getParam("red/track_width", track_width))
-    {
-        ROS_ERROR_STREAM("Cannot find track_width"); 
-        return(1); //return 1 to indicate error
-    }
-
-    if (!pub_nh.getParam("red/encoder_ticks_to_rad", encoder_ticks_to_rad))
-    {
-        ROS_ERROR_STREAM("Cannot find encoder_ticks_to_rad"); 
-        return(1); //return 1 to indicate error
-    }
 
     //Build ROS Objects
     const auto timestep_pub = nh.advertise<std_msgs::UInt64>("timestep", QUEUE_SIZE);
-    const auto encoder_pub = nh.advertise<nuturtlebot_msgs::SensorData>("red/sensor_data", QUEUE_SIZE);
+    const auto encoder_pub = pub_nh.advertise<nuturtlebot_msgs::SensorData>("red/sensor_data", QUEUE_SIZE);
     const auto cylinder_pub = nh.advertise<visualization_msgs::MarkerArray>("obstacles", QUEUE_SIZE, true);
     const auto walls_pub = nh.advertise<visualization_msgs::MarkerArray>("walls", QUEUE_SIZE, true); 
-    const auto wheel_cmd_sub = nh.subscribe("red/wheel_cmd", QUEUE_SIZE, wheel_cmd_handler);
+    const auto wheel_cmd_sub = pub_nh.subscribe("red/wheel_cmd", QUEUE_SIZE, wheel_cmd_handler);
     const auto reset_srv = nh.advertiseService("reset", reset);
     const auto teleport_srv = nh.advertiseService("teleport", teleport);
     geometry_msgs::TransformStamped ts;

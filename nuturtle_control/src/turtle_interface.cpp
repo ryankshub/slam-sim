@@ -39,11 +39,10 @@ static const std::string DEFAULT_RIGHT_JOINT = "wheel_right_joint";
 
 //Turtle_interface Variables
 static turtlelib::DiffDrive diff_drive;
-static std::vector<double> wheel_vels = {0, 0};
+static std::vector<double> wheel_vels = {0.0, 0.0};
 static nuturtlebot_msgs::WheelCommands wheel_cmds;
 static sensor_msgs::JointState joint_states;
 static bool new_wheel_cmd = false;
-static bool new_joint_states = false;
 static double motor_cmd_max = 0.0;
 static double motor_cmd_to_rads = 0.0;
 static double encoder_ticks_to_rad = 0.0;
@@ -99,8 +98,6 @@ void twist_handler(const geometry_msgs::Twist& msg)
 /// \param msg - nuturtlebot_msgs::SensorData representing turtlebot state
 void sensor_handler(const nuturtlebot_msgs::SensorData& msg)
 {
-    //Set joint state flag
-    new_joint_states = true;
     //Header Stamp
     joint_states.header.stamp = msg.stamp;
     joint_states.position.at(LEFT_WHEEL) = turtlelib::normalize_angle(msg.left_encoder*encoder_ticks_to_rad);
@@ -189,14 +186,10 @@ int main(int argc, char *argv[])
             new_wheel_cmd = false;
             wheel_pub.publish(wheel_cmds);
         }
-
-        if (new_joint_states)
-        {
-            new_joint_states = false;
-            joint_states.velocity.at(LEFT_WHEEL) = wheel_vels.at(LEFT_WHEEL);
-            joint_states.velocity.at(RIGHT_WHEEL) = wheel_vels.at(RIGHT_WHEEL);
-            state_pub.publish(joint_states);
-        }
+        joint_states.header.stamp = ros::Time::now();
+        joint_states.velocity.at(LEFT_WHEEL) = wheel_vels.at(LEFT_WHEEL);
+        joint_states.velocity.at(RIGHT_WHEEL) = wheel_vels.at(RIGHT_WHEEL);
+        state_pub.publish(joint_states);
 
         //Sleep
         loop_rate.sleep();

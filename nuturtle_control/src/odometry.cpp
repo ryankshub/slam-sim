@@ -38,6 +38,9 @@
 static const int DEFAULT_RATE = 500;
 static const std::string DEFAULT_ODOM = "odom";
 static const std::uint32_t QUEUE_SIZE = 1000;
+static const double DEFAULT_X = 0.0;
+static const double DEFAULT_Y = 0.0;
+static const double DEFAULT_THETA = 0.0;
 
 
 //Odometry's Variables
@@ -97,22 +100,25 @@ int main(int argc, char *argv[])
     std::string odom_id = "";
     double wheel_radius = 0.0;
     double track_width = 0.0;
+    double x0 = 0.0;
+    double y0 = 0.0;
+    double theta0 = 0.0;
 
     if (!nh.getParam("wheel_radius", wheel_radius))
     {
-        ROS_ERROR_STREAM("Cannot find wheel_radius"); 
+        ROS_ERROR_STREAM("Odomerty: Cannot find wheel_radius"); 
         return(1); //return 1 to indicate error
     }
 
     if (!nh.getParam("track_width", track_width))
     {
-        ROS_ERROR_STREAM("Cannot find track_width"); 
+        ROS_ERROR_STREAM("Odometry: Cannot find track_width"); 
         return(1); //return 1 to indicate error
     }
 
     if (!nh.getParam("body_id", body_id))
     {
-        ROS_ERROR_STREAM("Cannot find body_id"); 
+        ROS_ERROR_STREAM("Odometry: Cannot find body_id"); 
         return(1); //return 1 to indicate error
     }  
 
@@ -120,15 +126,19 @@ int main(int argc, char *argv[])
 
     if (!nh.getParam("wheel_left", wheel_left))
     {
-        ROS_ERROR_STREAM("Cannot find wheel_left"); 
+        ROS_ERROR_STREAM("Odometry: Cannot find wheel_left"); 
         return(1); //return 1 to indicate error
     }
 
     if (!nh.getParam("wheel_right", wheel_right))
     {
-        ROS_ERROR_STREAM("Cannot find wheel_right"); 
+        ROS_ERROR_STREAM("Odometry: Cannot find wheel_right"); 
         return(1); //return 1 to indicate error
     }
+
+    nh.param("/nusim/x0", x0, DEFAULT_X);
+    nh.param("/nusim/y0", y0, DEFAULT_Y);
+    nh.param("/nusim/theta0", theta0, DEFAULT_THETA);
 
     //ROS Objects
     const auto state_sub = nh.subscribe("joint_states", QUEUE_SIZE, state_handler);
@@ -138,6 +148,7 @@ int main(int argc, char *argv[])
 
     //Init DiffDrive object
     Dodom.set_wheel_config(track_width, wheel_radius);
+    Dodom.set_configuration(theta0, x0, y0);
     
     //Set up Rate object
     ros::Rate loop_rate(DEFAULT_RATE);

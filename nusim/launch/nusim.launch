@@ -3,7 +3,7 @@
     <!-- Arguments -->
     <arg name='color' default='red' doc="The robot's color; the options red is only supported for now"/> 
     <arg name='use_jsp' default='false' doc="Set true for the node to publish joint states"/>
-  
+    <arg name='use_rviz' default='true' doc="Set true to display nusim rviz"/>
     <!-- Load params -->
     <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
     <!-- Include files -->
@@ -18,5 +18,5 @@
 
     <!-- Open Rviz-->
     <node pkg="rviz" type="rviz" name="rviz" required="true"
-        args="-d $(find nusim)/config/nusim.rviz"/>
+        args="-d $(find nusim)/config/nusim.rviz" if="$(arg use_rviz)"/>
 </launch>
