@@ -11,11 +11,12 @@
     </group>
     
     <group if="$(eval cmd_src == 'teleop')">
-        <include file="$(find turtlebot3_teleop)/launch/turtlebot3_teleop_key.launch"/>
+        <node pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" name="turtlebot3_teleop_keyboard"  output="screen">
+  </node>
     </group>
 
     <!--Nodes-->
-    <node pkg="nuturtle_control" type="odometry" name="odometry" output="screen"/>
+    <node pkg="nuturtle_control" type="odometry" name="odometry"/>
     <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface"/>
     <!--Static Publisher-->
     <node pkg="tf2_ros" type="static_transform_publisher" name="world_odom_broadcaster" 
@@ -30,7 +31,7 @@
         <remap from="red/sensor_data" to="sensor_data"/>
         <remap from="red/wheel_cmd" to="wheel_cmd"/>
         <param name="nusim/red_space" type="bool" value="false"/>
-        <node pkg="nusim" type="nusim" name="nusim" output="screen"/>
+        <node pkg="nusim" type="nusim" name="nusim"/>
         
         <!--Params for odometry-->
         <param name="body_id" value="blue-base_footprint"/>
@@ -49,24 +50,24 @@
             name="joint_state_publisher" ns="red"/>
     </group>
 
-    <!-- <group if="$(eval robot == localhost)">
-        params
-        <param name="body_id" value="blue-base_footprint" ns="blue"/>
-        <param name="wheel_left" value="blue-wheel_left_joint" ns="blue"/>
-        <param name="wheel_right" value="blue-wheel_right_joint" ns="blue"/>
-        <param name="odom_id" value="odom" ns="blue"/>
-        static transform publisher
-        <node pkg="tf2_ros" type="static_transform_publisher" name="world_odom_broadcaster" 
-            args="0 0 0 0 0 0 world $(eval odom_id)" ns="blue"/>
+    <group if="$(eval robot == 'localhost')">
+        <!-- Nusim -->
+        <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
+        <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
         
-        <include "$(find nuturtle_description)/launch/load.launch">
-            <arg name="use_rviz" value='false'/>
-            <arg name='color' value='blue'/>
-        </include>
+        <!--Params for odometry-->
+        <param name="body_id" value="blue-base_footprint"/>
+        <param name="wheel_left" value="blue-wheel_left_joint"/>
+        <param name="wheel_right" value="blue-wheel_right_joint"/>
+        <param name="odom_id" value="odom"/>
+        
+        <!--Robots-->
+        <param name="robot_description" 
+            command="xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:='blue'"/>
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+    </group>
 
-        <node pkg="nuturtle_control" type="odometry" name="odometry" ns="blue"/>
-        <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface" ns="blue"/>
-    </group> -->
+
 
     <!-- Open Rviz-->
     <node pkg="rviz" type="rviz" name="rviz" required="true" if="$(arg use_rviz)"
