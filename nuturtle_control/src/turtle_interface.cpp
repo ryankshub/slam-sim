@@ -42,7 +42,6 @@ static turtlelib::DiffDrive diff_drive;
 static std::vector<double> wheel_vels = {0.0, 0.0};
 static nuturtlebot_msgs::WheelCommands wheel_cmds;
 static sensor_msgs::JointState joint_states;
-static bool new_wheel_cmd = false;
 static double motor_cmd_max = 0.0;
 static double motor_cmd_to_rads = 0.0;
 static double encoder_ticks_to_rad = 0.0;
@@ -68,13 +67,13 @@ void twist_handler(const geometry_msgs::Twist& msg)
     }
 
     if (!invalid_msg){
-        new_wheel_cmd = true;
         double left_ticks = wheel_vels.at(LEFT_WHEEL)/motor_cmd_to_rads;
         double right_ticks = wheel_vels.at(RIGHT_WHEEL)/motor_cmd_to_rads;
         //Cap left_ticks
         if (left_ticks > motor_cmd_max)
         {
             left_ticks = motor_cmd_max;
+
         } else if (left_ticks < -motor_cmd_max)
         {
             left_ticks = -motor_cmd_max;
@@ -91,6 +90,8 @@ void twist_handler(const geometry_msgs::Twist& msg)
 
         wheel_cmds.left_velocity = static_cast<int>(left_ticks);
         wheel_cmds.right_velocity = static_cast<int>(right_ticks);
+        wheel_vels.at(LEFT_WHEEL) = wheel_cmds.left_velocity*motor_cmd_to_rads;
+        wheel_vels.at(RIGHT_WHEEL) = wheel_cmds.right_velocity*motor_cmd_to_rads;
     }
 }
 
@@ -181,11 +182,8 @@ int main(int argc, char *argv[])
         ros::spinOnce();
 
         //Check wheel commands
-        if (new_wheel_cmd)
-        {
-            new_wheel_cmd = false;
-            wheel_pub.publish(wheel_cmds);
-        }
+        wheel_pub.publish(wheel_cmds);
+
         joint_states.header.stamp = ros::Time::now();
         joint_states.velocity.at(LEFT_WHEEL) = wheel_vels.at(LEFT_WHEEL);
         joint_states.velocity.at(RIGHT_WHEEL) = wheel_vels.at(RIGHT_WHEEL);

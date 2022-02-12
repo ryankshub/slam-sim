@@ -66,9 +66,9 @@ void state_handler(const sensor_msgs::JointState& msg)
         {
             if (msg.name.at(i) == wheel_left)
             {
-                left_wheel += msg.velocity.at(i);
+                left_wheel += msg.velocity.at(i)/static_cast<double>(DEFAULT_RATE);
             } else if (msg.name.at(i) == wheel_right) {
-                right_wheel += msg.velocity.at(i);
+                right_wheel += msg.velocity.at(i)/static_cast<double>(DEFAULT_RATE);
             }
         }
         //Update body_twist

@@ -120,8 +120,14 @@ void wheel_cmd_handler(const nuturtlebot_msgs::WheelCommands& msg)
     //Convert ticks to rads
     double new_left_rads = static_cast<double>(msg.left_velocity)/static_cast<double>(rate);
     double new_right_rads = static_cast<double>(msg.right_velocity)/static_cast<double>(rate);
+    // ROS_INFO_STREAM("LEFT VELOCITY TICKS " << msg.left_velocity);
+    // ROS_INFO_STREAM("RIGHT VELOCITY TICKS " << msg.right_velocity);
+    // ROS_INFO_STREAM("LEFT VELOCITY RADS " << msg.left_velocity*motor_cmd_to_rads);
+    // ROS_INFO_STREAM("RIGHT VELOCITY RADS " << msg.right_velocity*motor_cmd_to_rads);
     new_left_rads *= motor_cmd_to_rads;
     new_right_rads *= motor_cmd_to_rads;
+    // ROS_INFO_STREAM("NEW LEFT VEL " << new_left_rads);
+    // ROS_INFO_STREAM("NEW RIGHT VEL " << new_right_rads);
     //Update configuration
     diff_drive.apply_fw_kin_vel(new_left_rads, new_right_rads);
 
@@ -381,9 +387,7 @@ int main(int argc, char *argv[])
         ts.header.frame_id = "world";
         ts.child_frame_id = "red-base_footprint";
         ts.transform.translation.x = diff_drive.location().x;
-        ROS_INFO_STREAM("X for RED ROBOT " << diff_drive.location().x);
         ts.transform.translation.y = diff_drive.location().y;
-        ROS_INFO_STREAM("Y for RED ROBOT " << diff_drive.location().y);
         ts.transform.translation.z = 0.0;
         tf2::Quaternion q;
         q.setRPY(0, 0, diff_drive.theta());
