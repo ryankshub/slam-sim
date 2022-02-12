@@ -6,10 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /RobotModel1
-        - /RobotModel2
-        - /RobotModel2/Status1
-        - /TF1
+        - /RobotModel1/Status1
         - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 752
@@ -101,7 +98,7 @@ Visualization Manager:
           Show Trail: false
           Value: true
       Name: RobotModel
-      Robot Description: blue/robot_description
+      Robot Description: robot_description
       TF Prefix: ""
       Update Interval: 0
       Value: true
@@ -109,51 +106,18 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: true
+      Enabled: false
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        red-base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        red-base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        red-base_scan:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        red-caster_back_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        red-imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        red-wheel_left_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        red-wheel_right_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
-      Robot Description: robot_description
+      Robot Description: red/robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: true
+      Value: false
       Visual Enabled: true
     - Class: rviz/TF
       Enabled: true
@@ -161,7 +125,7 @@ Visualization Manager:
       Frames:
         All Enabled: false
         blue-base_footprint:
-          Value: false
+          Value: true
         blue-base_link:
           Value: false
         blue-base_scan:
@@ -177,7 +141,7 @@ Visualization Manager:
         odom:
           Value: true
         red-base_footprint:
-          Value: true
+          Value: false
         red-base_link:
           Value: false
         red-base_scan:
@@ -185,6 +149,10 @@ Visualization Manager:
         red-caster_back_link:
           Value: false
         red-imu_link:
+          Value: false
+        red-wheel_left_link:
+          Value: false
+        red-wheel_right_link:
           Value: false
         world:
           Value: false
@@ -216,6 +184,10 @@ Visualization Manager:
               red-caster_back_link:
                 {}
               red-imu_link:
+                {}
+              red-wheel_left_link:
+                {}
+              red-wheel_right_link:
                 {}
       Update Interval: 0
       Value: true
@@ -263,9 +235,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.21039842069149017
+      Pitch: 0.9853977560997009
       Target Frame: <Fixed Frame>
-      Yaw: 1.555397868156433
+      Yaw: 1.6753977537155151
     Saved: ~
 Window Geometry:
   Displays:

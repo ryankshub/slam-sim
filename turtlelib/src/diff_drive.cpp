@@ -123,12 +123,44 @@ namespace turtlelib {
         return *this;
     }
 
+    //DiffDrive apply fw kinematics (velocity input)
+    DiffDrive & DiffDrive::apply_fw_kin_vel(const double left_vel, const double right_vel)
+    {
+        // Get Body Twist
+        Twist2D body_twist = cal_fw_kin_vel(left_vel, right_vel);
+
+        //Integrate Twist
+        Transform2D motion = integrate_twist(body_twist);
+
+        //Convert motion to world frame
+        Twist2D qb{motion.rotation(), motion.translation().x, motion.translation().y};
+        Twist2D q = Transform2D{mAng_rad}(qb); //Apply Adjunct
+
+        //Update configuration
+        mLw_rad = normalize_angle(mLw_rad + left_vel);
+        mRw_rad = normalize_angle(mRw_rad + right_vel);
+        mAng_rad = mAng_rad + q.theta_dot;
+        mX_m = mX_m + q.x_dot;
+        mY_m = mY_m + q.y_dot;
+
+        return *this;
+    }
+
     //DiffDrive cal fw kinematics
     Twist2D DiffDrive::cal_fw_kin(const double left_pos, const double right_pos)
     {
         // Get wheel velocities
         double left_vel = left_pos - mLw_rad;
         double right_vel = right_pos - mRw_rad;
+        // Get Body Twist
+        double theta_dot = (mWheel_rad/mWheel_track)*(right_vel - left_vel);
+        double x_dot = (0.5*mWheel_rad)*(left_vel + right_vel);
+        return Twist2D{theta_dot, x_dot, 0.0};
+    }
+
+    //DiffDrive cal fw kinematics(velocity input)
+    Twist2D DiffDrive::cal_fw_kin_vel(const double left_vel, const double right_vel)
+    {
         // Get Body Twist
         double theta_dot = (mWheel_rad/mWheel_track)*(right_vel - left_vel);
         double x_dot = (0.5*mWheel_rad)*(left_vel + right_vel);

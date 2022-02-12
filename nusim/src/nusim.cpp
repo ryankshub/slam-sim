@@ -61,6 +61,7 @@ static const double CYLINDER_HEIGHT = 0.25;
 static const double WALL_THICKNESS = 0.1;
 static const double WALL_HEIGHT = 0.25;
 static const bool DEFAULT_SIM_SPACE = true;
+static const int ENCODER_RESOLUTION = 4096;
 
 // Nusim Node's variables
 static std::uint64_t timestep = 0;
@@ -69,6 +70,7 @@ static double x_init;
 static double y_init;
 static double theta_init;
 static double encoder_ticks_to_rad;
+static double motor_cmd_to_rads;
 static turtlelib::DiffDrive diff_drive;
 static nuturtlebot_msgs::SensorData sensor_data;
 static std::vector<double> obs_x;
@@ -109,11 +111,19 @@ bool teleport(nusim::Teleport::Request &req,
 /// of the robots and encoder angles
 void wheel_cmd_handler(const nuturtlebot_msgs::WheelCommands& msg)
 {
+    //Update sensor_data angle
     sensor_data.left_encoder += msg.left_velocity;
     sensor_data.right_encoder += msg.right_velocity;
-    double new_left_wheel_rad = sensor_data.left_encoder*encoder_ticks_to_rad;
-    double new_right_wheel_rad = sensor_data.left_encoder*encoder_ticks_to_rad;
-    diff_drive.apply_fw_kin(new_left_wheel_rad, new_right_wheel_rad);
+    //Normalize encoder angle between 0 ~ 4095
+    sensor_data.left_encoder = sensor_data.left_encoder % ENCODER_RESOLUTION;
+    sensor_data.right_encoder = sensor_data.right_encoder % ENCODER_RESOLUTION;
+    //Convert ticks to rads
+    double new_left_rads = static_cast<double>(msg.left_velocity)/static_cast<double>(rate);
+    double new_right_rads = static_cast<double>(msg.right_velocity)/static_cast<double>(rate);
+    new_left_rads *= motor_cmd_to_rads;
+    new_right_rads *= motor_cmd_to_rads;
+    //Update configuration
+    diff_drive.apply_fw_kin_vel(new_left_rads, new_right_rads);
 
 }
 
@@ -174,6 +184,12 @@ int main(int argc, char *argv[])
         ROS_ERROR_STREAM("Nusim: Cannot find encoder_ticks_to_rad"); 
         return(1); //return 1 to indicate error
         } 
+
+        if (!pub_nh.getParam("red/motor_cmd_to_rads", motor_cmd_to_rads))
+        {
+        ROS_ERROR_STREAM("Nusim: Cannot find encoder_ticks_to_rad"); 
+        return(1); //return 1 to indicate error
+        } 
     } else { //If parameters are not in red space
         if (!pub_nh.getParam("wheel_radius", wheel_radius))
         {
@@ -188,6 +204,12 @@ int main(int argc, char *argv[])
         }
 
         if (!pub_nh.getParam("encoder_ticks_to_rad", encoder_ticks_to_rad))
+        {
+        ROS_ERROR_STREAM("Nusim: Cannot find encoder_ticks_to_rad"); 
+        return(1); //return 1 to indicate error
+        } 
+
+        if (!pub_nh.getParam("motor_cmd_to_rads", motor_cmd_to_rads))
         {
         ROS_ERROR_STREAM("Nusim: Cannot find encoder_ticks_to_rad"); 
         return(1); //return 1 to indicate error
@@ -359,7 +381,9 @@ int main(int argc, char *argv[])
         ts.header.frame_id = "world";
         ts.child_frame_id = "red-base_footprint";
         ts.transform.translation.x = diff_drive.location().x;
+        ROS_INFO_STREAM("X for RED ROBOT " << diff_drive.location().x);
         ts.transform.translation.y = diff_drive.location().y;
+        ROS_INFO_STREAM("Y for RED ROBOT " << diff_drive.location().y);
         ts.transform.translation.z = 0.0;
         tf2::Quaternion q;
         q.setRPY(0, 0, diff_drive.theta());

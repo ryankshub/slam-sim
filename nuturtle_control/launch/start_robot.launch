@@ -30,7 +30,7 @@
         <remap from="red/sensor_data" to="sensor_data"/>
         <remap from="red/wheel_cmd" to="wheel_cmd"/>
         <param name="nusim/red_space" type="bool" value="false"/>
-        <node pkg="nusim" type="nusim" name="nusim"/>
+        <node pkg="nusim" type="nusim" name="nusim" output="screen"/>
         
         <!--Params for odometry-->
         <param name="body_id" value="blue-base_footprint"/>
