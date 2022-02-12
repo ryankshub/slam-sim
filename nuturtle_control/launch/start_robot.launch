@@ -11,19 +11,19 @@
     </group>
     
     <group if="$(eval cmd_src == 'teleop')">
-        <node pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" name="turtlebot3_teleop_keyboard"  output="screen">
-  </node>
+        <node pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" name="turtlebot3_teleop_keyboard"  output="screen"/>
     </group>
 
-    <!--Nodes-->
-    <node pkg="nuturtle_control" type="odometry" name="odometry"/>
-    <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface"/>
-    <!--Static Publisher-->
-    <node pkg="tf2_ros" type="static_transform_publisher" name="world_odom_broadcaster" 
-            args="0 0 0 0 0 0 world odom"/>
-    
+
     <!-- Parse robot -->
     <group if="$(eval robot == 'nusim')">
+        <!--Nodes-->
+        <node pkg="nuturtle_control" type="odometry" name="odometry"/>
+        <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface"/>
+        <!--Static Publisher-->
+        <node pkg="tf2_ros" type="static_transform_publisher" name="world_odom_broadcaster" 
+                args="0 0 0 0 0 0 world odom"/>
+
         <!-- Nusim -->
         <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
         <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
@@ -51,7 +51,16 @@
     </group>
 
     <group if="$(eval robot == 'localhost')">
-        <!-- Nusim -->
+
+        <!--Nodes-->
+        <node pkg="nuturtle_control" type="odometry" name="odometry"/>
+        <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface"/>
+        
+        <!--Static Publisher-->
+        <node pkg="tf2_ros" type="static_transform_publisher" name="world_odom_broadcaster" 
+                args="0 0 0 0 0 0 world odom"/>
+        
+        <!-- Params -->
         <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
         <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
         
@@ -67,7 +76,43 @@
         <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
     </group>
 
+    <group if="$(eval (robot != 'localhost') and (robot != 'nusim') and (robot != 'none'))">
+        <!--Nodes-->
+        <node pkg="nuturtle_control" type="odometry" name="odometry" machine="robot"/>
+        <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface" machine="robot"/>
+        <!--Static Publisher-->
+        <node pkg="tf2_ros" type="static_transform_publisher" name="world_odom_broadcaster" 
+                args="0 0 0 0 0 0 world odom"/>
+        <!-- Params -->
+        <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
+        <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
+        <param name="body_id" value="blue-base_footprint"/>
+        <param name="wheel_left" value="blue-wheel_left_joint"/>
+        <param name="wheel_right" value="blue-wheel_right_joint"/>
+        <param name="odom_id" value="odom"/>
+        <!--Robots-->
+        <param name="robot_description" 
+            command="xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:='blue'"/>
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+        <!--Includes-->
+        <include file="$(find nuturtle_control)/launch/basic_remote.launch">
+            <arg name="robot" value="$(arg robot)"/>
+        </include>
+    </group>
 
+    <group if="$(eval robot == 'none'">
+        <!-- Params -->
+        <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
+        <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
+        <param name="body_id" value="blue-base_footprint"/>
+        <param name="wheel_left" value="blue-wheel_left_joint"/>
+        <param name="wheel_right" value="blue-wheel_right_joint"/>
+        <param name="odom_id" value="odom"/>
+
+        <!--Nodes-->
+        <node pkg="nuturtle_control" type="odometry" name="odometry"/>
+        <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface"/>
+    </group>
 
     <!-- Open Rviz-->
     <node pkg="rviz" type="rviz" name="rviz" required="true" if="$(arg use_rviz)"
