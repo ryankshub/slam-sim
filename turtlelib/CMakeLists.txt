@@ -215,13 +215,14 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-
-## Add test cases for catch_ros
-catch_add_test(${PROJECT_NAME}_test 
-    tests/tests.cpp
-)
-target_link_libraries(${PROJECT_NAME}_test 
-    ${PROJECT_NAME}
-    ${catkin_LIBRARIES}
-)
+if (CATKIN_ENABLE_TESTING)
+  ## Add test cases for catch_ros
+  catch_add_test(${PROJECT_NAME}_test 
+      tests/tests.cpp
+  )
+  target_link_libraries(${PROJECT_NAME}_test 
+      ${PROJECT_NAME}
+      ${catkin_LIBRARIES}
+  )
+endif()
 

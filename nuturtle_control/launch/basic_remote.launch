@@ -1,5 +1,5 @@
 <launch> <!-- basic launch file -->
-    <arg name="robot" default="localhost" docs="hostname of the turtlebot to run code on"/>
+    <arg name="robot" default="localhost" doc="hostname of the turtlebot to run code on"/>
 
     <machine name="turtlebot" env-loader="/home/msr/install/share/nuturtle_control/loader.sh" 
         user="msr" address="$(arg robot)"/>

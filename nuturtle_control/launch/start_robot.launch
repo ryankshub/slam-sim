@@ -16,6 +16,7 @@
 
 
     <!-- Parse robot -->
+    <!-- Nusim running-->
     <group if="$(eval robot == 'nusim')">
         <!--Nodes-->
         <node pkg="nuturtle_control" type="odometry" name="odometry"/>
@@ -50,36 +51,11 @@
             name="joint_state_publisher" ns="red"/>
     </group>
 
-    <group if="$(eval robot == 'localhost')">
-
+    <!-- Localhost and turtlebot -->
+    <group if="$(eval (robot != 'nusim') and (robot != 'none'))">
         <!--Nodes-->
-        <node pkg="nuturtle_control" type="odometry" name="odometry"/>
-        <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface"/>
-        
-        <!--Static Publisher-->
-        <node pkg="tf2_ros" type="static_transform_publisher" name="world_odom_broadcaster" 
-                args="0 0 0 0 0 0 world odom"/>
-        
-        <!-- Params -->
-        <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
-        <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
-        
-        <!--Params for odometry-->
-        <param name="body_id" value="blue-base_footprint"/>
-        <param name="wheel_left" value="blue-wheel_left_joint"/>
-        <param name="wheel_right" value="blue-wheel_right_joint"/>
-        <param name="odom_id" value="odom"/>
-        
-        <!--Robots-->
-        <param name="robot_description" 
-            command="xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:='blue'"/>
-        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
-    </group>
-
-    <group if="$(eval (robot != 'localhost') and (robot != 'nusim') and (robot != 'none'))">
-        <!--Nodes-->
-        <node pkg="nuturtle_control" type="odometry" name="odometry" machine="robot"/>
-        <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface" machine="robot"/>
+        <node pkg="nuturtle_control" type="odometry" name="odometry" machine="turtlebot"/>
+        <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface" machine="turtlebot"/>
         <!--Static Publisher-->
         <node pkg="tf2_ros" type="static_transform_publisher" name="world_odom_broadcaster" 
                 args="0 0 0 0 0 0 world odom"/>
@@ -100,7 +76,8 @@
         </include>
     </group>
 
-    <group if="$(eval robot == 'none'">
+    <!-- None option-->
+    <group if="$(eval robot == 'none')">
         <!-- Params -->
         <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
         <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
