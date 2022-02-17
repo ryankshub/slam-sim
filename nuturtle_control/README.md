@@ -9,7 +9,7 @@ A package for reading sensor information and publish robot's pose in the odometr
 # Conceptual Questions
 
 ## Translation Motion
-[![Watch the video](https://img.youtube.com/vi/T-D1KVIuvjA/maxresdefault.jpg)](https://youtu.be/T-D1KVIuvjA)
+[![Translation Video](https://img.youtube.com/vi/1c8Anr-mO-A/maxresdefault.jpg)](https://youtu.be/1c8Anr-mO-A)
 
 Final location of robot:
 - x: 0.17
@@ -18,7 +18,7 @@ Final location of robot:
 
 ## Rotation Motion
 
-![Rotation Video]
+[![Rotation Video](https://img.youtube.com/vi/pNwh_RnRQ_s/maxresdefault.jpg)](https://youtu.be/pNwh_RnRQ_s)
 
 Final location of robot:
 - x: -4.689e-16
@@ -27,7 +27,7 @@ Final location of robot:
 
 ## Circular Video
 
-![Circular Video]
+[![Circular Video](https://img.youtube.com/vi/rX1QRrciBjo/maxresdefault.jpg)](https://youtu.be/rX1QRrciBjo)
 
 Final location of robot:
 - x: 0.179
@@ -38,7 +38,7 @@ Final location of robot:
 
 For this motion I drove the robot slowly to try to avoid any slip from switching direction. 
 
-![Better Driving Video]
+[![Better Driving Video](https://img.youtube.com/vi/_L6rtyroIZM/maxresdefault.jpg)](https://youtu.be/_L6rtyroIZM)
 
 Final location of the robot
 - x: -0.000564
