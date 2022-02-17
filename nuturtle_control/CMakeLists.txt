@@ -75,8 +75,8 @@ add_service_files(
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
-  std_msgs  # Or other packages containing msgs
   nuturtlebot_msgs
+  std_msgs  # Or other packages containing msgs
 )
 
 ################################################
@@ -113,7 +113,7 @@ catkin_package(
 #  LIBRARIES nuturtle_control
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
-   CATKIN_DEPENDS message_runtime roscpp std_msgs
+   CATKIN_DEPENDS message_runtime nuturtlebot_msgs roscpp std_msgs
 )
 
 ###########
@@ -259,6 +259,9 @@ if(CATKIN_ENABLE_TESTING)
   # Test for circle
   add_executable(circle_caller test/circle_caller.cpp)
   add_dependencies(circle_caller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+  install(TARGETS circle_caller
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  )
   target_link_libraries(circle_caller
     ${catkin_LIBRARIES}
   )
