@@ -18,7 +18,7 @@ Final location of robot:
 
 ## Rotation Motion
 
-[Rotation Video]()
+[Rotation Video](https://drive.google.com/file/d/1hrQgfVucYB2eDacfG3_13vKqoVriZYcY/view?usp=sharing)
 
 Final location of robot:
 - x: -4.689e-16
