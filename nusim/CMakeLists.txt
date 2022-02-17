@@ -202,7 +202,15 @@ install(TARGETS ${PROJECT_NAME}
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
-
+## install launch and config files
+install(DIRECTORY
+  launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+)
+install(DIRECTORY
+  config/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
+)
 #############
 ## Testing ##
 #############
