@@ -1,7 +1,7 @@
 # Parameters for wheel axel of the turtle robot
-wheel_radius: 0.033 # Radius of wheel (m)
-track_width: 0.16 # Distance between wheels (m)
-collision_radius: 0.11 # Collision radius of the robot
-motor_cmd_max: 256 
-motor_cmd_to_rads: 0.024
-encoder_ticks_to_rad: 0.001534
+wheel_radius: 0.033            # Radius of wheel (m)
+track_width: 0.16              # Distance between wheels (m)
+collision_radius: 0.11         # Collision radius of the robot
+motor_cmd_max: 256             # Max value of motor_cmd
+motor_cmd_to_rads: 0.024       # Conversion rate from ticks/secs to rad/sec
+encoder_ticks_to_rad: 0.001534 # Conversion rate from encoder ticks to radians
