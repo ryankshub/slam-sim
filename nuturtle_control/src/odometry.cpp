@@ -2,16 +2,34 @@
 /// \brief Odometry publishes the odometry messages and odometry transform
 ///
 /// PARAMETERS:
-///   track_width (double) : distance between the robot's wheels 
-///   body_id (string): Name of the body frame of the robot (Required)
-///   odom_id (string): Name of the odometry frame (Defaulted to `odom`)
-///   wheel_left (string): Name of the left wheel joint (Required)
-///   wheel_right (string): Name of the right wheel joint (Required)
+///   wheel_radius(double, required): radius of the robot's wheels
+///   track_width (double, required): distance between the robot's wheels 
+///   body_id (string, required): Name of the body frame of the robot (Required)
+///   odom_id (string, required): Name of the odometry frame (Defaulted to `odom`)
+///   wheel_left (string, required): Name of the left wheel joint (Required)
+///   wheel_right (string, required): Name of the right wheel joint (Required)
+///   nusim/x0 (double, default 0): Starting x position of the turtlebot 
+///     Read from nusim in case position is different from origin
+///   nusim/y0 (double, default 0): Starting y position of the turtlebot
+///     Read from nusim in case position is different from origin
+///   nusim/theta0 (double, default 0): Starting angle position of the turtlebot
+///     Read from nusim in case position is different from origin
+///
 ///    
 /// PUBLISHES:
+///     odom (nav_mags::Odometry): publishes the robot's pose in the odometry frame
 ///
 /// SUBSCRIBERS:
+///     joint_states (sensor_msgs::JointState): listens for the encoder position and wheel 
+///         angular speeds of the robot
 ///
+/// SERVICES:
+///     set_pose (nuturtle_control::PoseConfig): given the x, y, and theta of new configuration,
+///         teleport the robot to that position
+///
+/// BROADCASTER:
+///     broadcaster (non-static odom_id to body_id): Transformation matrix from odom_id frame
+///         to oody_id frame
 
 
 //RKS

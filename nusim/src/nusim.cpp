@@ -10,14 +10,18 @@
 ///     obstacles/obs_x: List of x position for cylinder obstacles (m)
 ///     obstacles/obs_y: List of y position for cylinder obstacles (m)
 ///     obstacles/radius: Radius of the cylinder obstacles (m)
-///     parameter_name (parameter_type): description of the parameter
-///     
+///     red_space (bool): True if certain params are found in red namespace.
+///     x_length(double): X length of the arena
+///     y_length(double): Y length of the arena
+///     wheel_radius(double, required): radius of the robot's wheels
+///     track_width (double, required): distance between the robot's wheels 
+///     motor_cmd_to_rads(double, required): Conversion rate from ticks/secs to rad/sec
+///     encoder_ticks_to_rad(double,required): Conversion rate from encoder ticks to radians   
 /// PUBLISHES:
 ///     nusim/timestep (std_msgs::UInt64): The timestep of the simulation
 ///     nusim/obstacles (visualization_msgs::MarkerArray): The list of cylinder Marker obstacles to 
 ///         display in rviz
-///     red/jointes (sensor_msgs::JointState): The positions of the wheels on the robot. 
-///         Currently set to 0.
+///     nusim/walls (visualization_msgs::MarkerArray): The walls of the arena
 /// BROADCASTER:
 ///     broadcaster (non-static world to red-base_footprint): Transformation matrix from world frame
 ///         to red-base_footprint frame

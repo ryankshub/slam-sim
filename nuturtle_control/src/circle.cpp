@@ -2,11 +2,18 @@
 /// \brief publishes the cmd_vel messages to have the robot drive in a circle
 ///
 /// PARAMETERS:
-///    
+///   private (parameter scoped to node name):
+///     frequency (int, default 100): The running rate of the node (Hz) 
+///     
 /// PUBLISHES:
-///
-/// SUBSCRIBERS:
-///
+///     cmd_vel (geometry_msgs::Twist): The commanded body twist velocity of the robot. This message 
+///         will publish at the rate of param ~frequency while the robot is moving. If the robot
+///         is commanded to stop, the robot will publish one stop command and cease publishing. 
+/// SERVICES:
+///     contorl (nuturtle_control::CircleControl): Call this service to have the turtlebot follow a 
+///         circular path with a specified angular velocity and radius
+///     reverse (std_srvs::Empty): Reverse the current velocity the robot is following
+///     stop (std_srvs::Empty): Stop the robot
 
 // RKS
 

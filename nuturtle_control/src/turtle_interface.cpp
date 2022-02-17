@@ -2,12 +2,22 @@
 /// \brief The Turtle Interface converts body_twist to wheel_cmds and publish state of wheels on joints states
 ///
 /// PARAMETERS:
-///
+///   wheel_radius(double, required): radius of the robot's wheels
+///   track_width (double, required): distance between the robot's wheels 
+///   motor_cmd_max (double, required): Maximum number of ticks/sec the motor can output
+///   motor_cmd_to_rads(double, required): Conversion rate from ticks/secs to rad/sec
+///   encoder_ticks_to_rad(double,required): Conversion rate from encoder ticks to radians
+///   wheel_left (string): Name of the left wheel joint (Required)
+///   wheel_right (string): Name of the right wheel joint (Required)
 ///     
 /// PUBLISHES:
+///   wheel_cmd (nuturtlebot_msgs::WheelCommands): commanded ticks/sec for the robot's wheels
+///   joint_states (sensor_msgs::JointState): the encoder position and wheel 
+///     angular speeds of the robot
 ///
 /// SUBSCRIBERS:
-///
+///   cmd_vel (geometry_msgs::Twist): Commanded body twist velocity of the robot
+///   sensor_data (nuturtlebot_msgs::SensorData): Encoder reading from the robot's wheels
 
 
 //RKS

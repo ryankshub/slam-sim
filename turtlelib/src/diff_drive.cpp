@@ -111,11 +111,13 @@ namespace turtlelib {
 
         //Convert motion to world frame
         Twist2D qb{motion.rotation(), motion.translation().x, motion.translation().y};
+
         Twist2D q = Transform2D{mAng_rad}(qb); //Apply Adjunct
 
         //Update configuration
         mLw_rad = normalize_angle(left_pos);
         mRw_rad = normalize_angle(right_pos);
+        //Appling Eq 10 from Kinematics.pdf
         mAng_rad = mAng_rad + q.theta_dot;
         mX_m = mX_m + q.x_dot;
         mY_m = mY_m + q.y_dot;
@@ -153,6 +155,7 @@ namespace turtlelib {
         double left_vel = left_pos - mLw_rad;
         double right_vel = right_pos - mRw_rad;
         // Get Body Twist
+        //Eqs 7 and 8 from Kinematics.pdf
         double theta_dot = (mWheel_rad/mWheel_track)*(right_vel - left_vel);
         double x_dot = (0.5*mWheel_rad)*(left_vel + right_vel);
         return Twist2D{theta_dot, x_dot, 0.0};
@@ -174,7 +177,10 @@ namespace turtlelib {
         {
             throw std::logic_error("Invalid twist has been provided");
         } 
+        // Equation 5 from Kinematics.pdf
         double left_vel = (-0.5*mWheel_track*twist_b.theta_dot + twist_b.x_dot)/mWheel_rad;
+
+        // Equation 6 from Kinematics.pdf
         double right_vel = (0.5*mWheel_track*twist_b.theta_dot + twist_b.x_dot)/mWheel_rad;
         return std::vector<double>{left_vel, right_vel};
     }
