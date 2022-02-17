@@ -9,7 +9,7 @@ A package for reading sensor information and publish robot's pose in the odometr
 # Conceptual Questions
 
 ## Translation Motion
-![Translation Video](https://youtu.be/1c8Anr-mO-A)
+![Translation Video](https://www.youtube.com/watch?v=1c8Anr-mO-A)
 
 Final location of robot:
 - x: 0.17
