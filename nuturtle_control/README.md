@@ -18,7 +18,7 @@ Final location of robot:
 
 ## Rotation Motion
 
-![Rotation Video](https://youtu.be/pNwh_RnRQ_s)
+![Rotation Video]
 
 Final location of robot:
 - x: -4.689e-16
@@ -27,7 +27,7 @@ Final location of robot:
 
 ## Circular Video
 
-![Circular Video](https://youtu.be/rX1QRrciBjo)
+![Circular Video]
 
 Final location of robot:
 - x: 0.179
@@ -38,7 +38,7 @@ Final location of robot:
 
 For this motion I drove the robot slowly to try to avoid any slip from switching direction. 
 
-![Better Driving Video](https://youtu.be/_L6rtyroIZM)
+![Better Driving Video]
 
 Final location of the robot
 - x: -0.000564
