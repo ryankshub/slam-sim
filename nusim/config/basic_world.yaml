@@ -8,5 +8,11 @@ nusim:
     obs_x: [-0.6, 0.6, 0.6]  #x position of the cylinders (m)
     obs_y: [-0.8, -0.8, 0.8] #y position of the cylinders (m)
     radius: 0.038            #radius of the cylinders (m)
-  x_length: 5    # x-length of the arena(m)
-  y_length: 4    # y-length of the arena(m)
+  arena:
+    x_length: 5    # x-length of the arena(m)
+    y_length: 4    # y-length of the arena(m)
+  dist:
+    mean: 0
+    std_dev: 0.01
+    slip_min: .9
+    slip_max: 1.1

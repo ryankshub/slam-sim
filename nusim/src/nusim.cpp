@@ -37,6 +37,7 @@
 #include "turtlelib/diff_drive.hpp"
 //C++ includes
 #include <cstdint>
+#include <random>
 #include <vector>
 //3rd-party includes
 #include "geometry_msgs/TransformStamped.h"
@@ -66,6 +67,9 @@ static const double WALL_THICKNESS = 0.1;
 static const double WALL_HEIGHT = 0.25;
 static const bool DEFAULT_SIM_SPACE = true;
 static const int ENCODER_RESOLUTION = 4096;
+static const double DEFAULT_MEAN = 0.0;
+static const double DEFAULT_STD_DEV = 0.0;
+static const double DEFAULT_SLIP = 1.0;
 
 // Nusim Node's variables
 static std::uint64_t timestep = 0;
@@ -82,6 +86,27 @@ static std::vector<double> obs_y;
 static double obs_radius;
 static double x_length;
 static double y_length; 
+static double mean;
+static double std_dev;
+static double slip_min;
+static double slip_max;
+
+
+// Nusim Node's functions
+
+/// \brief Create a random number device for C++ distribution functions
+/// Originally by Matt Elwin for SLAM 495
+/// \return Return random number device
+ std::mt19937 & get_random()
+ {
+     // static variables inside a function are created once and persist for the remainder of the program
+     static std::random_device rd{}; 
+     static std::mt19937 mt{rd()};
+     // we return a reference to the pseudo-random number genrator object. This is always the
+     // same object every time get_random is called
+     return mt;
+ }
+
 
 //Nusim Node's callbacks
 
@@ -115,25 +140,37 @@ bool teleport(nusim::Teleport::Request &req,
 /// of the robots and encoder angles
 void wheel_cmd_handler(const nuturtlebot_msgs::WheelCommands& msg)
 {
-    //Update sensor_data angle
-    sensor_data.left_encoder += msg.left_velocity;
-    sensor_data.right_encoder += msg.right_velocity;
-    //Normalize encoder angle between 0 ~ 4095
-    sensor_data.left_encoder = sensor_data.left_encoder % ENCODER_RESOLUTION;
-    sensor_data.right_encoder = sensor_data.right_encoder % ENCODER_RESOLUTION;
     //Convert ticks to rads
     double new_left_rads = static_cast<double>(msg.left_velocity)/static_cast<double>(rate);
     double new_right_rads = static_cast<double>(msg.right_velocity)/static_cast<double>(rate);
-    // ROS_INFO_STREAM("LEFT VELOCITY TICKS " << msg.left_velocity);
-    // ROS_INFO_STREAM("RIGHT VELOCITY TICKS " << msg.right_velocity);
-    // ROS_INFO_STREAM("LEFT VELOCITY RADS " << msg.left_velocity*motor_cmd_to_rads);
-    // ROS_INFO_STREAM("RIGHT VELOCITY RADS " << msg.right_velocity*motor_cmd_to_rads);
+
     new_left_rads *= motor_cmd_to_rads;
     new_right_rads *= motor_cmd_to_rads;
-    // ROS_INFO_STREAM("NEW LEFT VEL " << new_left_rads);
-    // ROS_INFO_STREAM("NEW RIGHT VEL " << new_right_rads);
+
+    // Add noisy component to velocity in rad/sec
+    if (!(turtlelib::almost_equal(new_left_rads, 0.0) && turtlelib::almost_equal(new_right_rads, 0.0)))
+    {
+        std::normal_distribution<double> gauss(mean, std_dev);
+        double vel_noise = gauss(get_random());
+        new_left_rads += vel_noise;
+        new_right_rads += vel_noise;
+    }
+
     //Update configuration
     diff_drive.apply_fw_kin_vel(new_left_rads, new_right_rads);
+
+    //Calculate wheel slip 
+    std::uniform_real_distribution<double> uni(slip_min, slip_max);
+    //Convert new velocity to ticks
+    double left_vel_ticks = new_left_rads / motor_cmd_to_rads;
+    double right_vel_ticks = new_right_rads / motor_cmd_to_rads;
+
+    //Update sensor_data angle (add slip noise)
+    sensor_data.left_encoder += static_cast<int>(left_vel_ticks*uni(get_random()));
+    sensor_data.right_encoder += static_cast<int>(right_vel_ticks*uni(get_random()));
+    //Normalize encoder angle between 0 ~ 4095
+    sensor_data.left_encoder = sensor_data.left_encoder % ENCODER_RESOLUTION;
+    sensor_data.right_encoder = sensor_data.right_encoder % ENCODER_RESOLUTION;
 
 }
 
@@ -151,24 +188,32 @@ int main(int argc, char *argv[])
     bool red_space = true;
 
     //Get Params
+    //Rate
     nh.param("rate", rate, DEFAULT_RATE);
+    //Robot position
     nh.param("x0", x_init, DEFAULT_X);
     nh.param("y0", y_init, DEFAULT_Y);
     nh.param("theta0", theta_init, DEFAULT_THETA);
+    //Obstacale position
     nh.param("obstacles/obs_x", obs_x, DEFAULT_OBS_LIST);
     nh.param("obstacles/obs_y", obs_y, DEFAULT_OBS_LIST);
     nh.param("obstacles/radius", obs_radius, DEFAULT_RADIUS);
+    //Distribution params
+    nh.param("dist/mean", mean, DEFAULT_MEAN);
+    nh.param("dist/std_dev", std_dev, DEFAULT_STD_DEV);
+    nh.param("dist/slip_min", slip_min, DEFAULT_SLIP);
+    nh.param("dist/slip_max", slip_max, DEFAULT_SLIP);
     
     nh.param("red_space", red_space, DEFAULT_SIM_SPACE);
 
     //Get Arena Param
-    if(!nh.getParam("x_length", x_length))
+    if(!nh.getParam("arena/x_length", x_length))
     {
         ROS_ERROR_STREAM("Nusim: Cannot find x_length for arena");
         return(1);
     }
 
-    if(!nh.getParam("y_length", y_length))
+    if(!nh.getParam("arena/y_length", y_length))
     {
         ROS_ERROR_STREAM("Nusim: Cannot find y_length for arena");
         return(1);
