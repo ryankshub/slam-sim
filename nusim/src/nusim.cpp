@@ -68,8 +68,9 @@ static const double WALL_HEIGHT = 0.25;
 static const bool DEFAULT_SIM_SPACE = true;
 static const int ENCODER_RESOLUTION = 4096;
 static const double DEFAULT_MEAN = 0.0;
-static const double DEFAULT_STD_DEV = 0.0;
+static const double DEFAULT_VARIANCE = 0.0;
 static const double DEFAULT_SLIP = 1.0;
+static const double DEFAULT_RANGE = 100.0;
 
 // Nusim Node's variables
 static std::uint64_t timestep = 0;
@@ -86,10 +87,11 @@ static std::vector<double> obs_y;
 static double obs_radius;
 static double x_length;
 static double y_length; 
-static double mean;
-static double std_dev;
+static double vel_mean;
+static double vel_variance;
 static double slip_min;
 static double slip_max;
+static visualization_msgs::MarkerArray cylinder;
 
 
 // Nusim Node's functions
@@ -150,7 +152,7 @@ void wheel_cmd_handler(const nuturtlebot_msgs::WheelCommands& msg)
     // Add noisy component to velocity in rad/sec
     if (!(turtlelib::almost_equal(new_left_rads, 0.0) && turtlelib::almost_equal(new_right_rads, 0.0)))
     {
-        std::normal_distribution<double> gauss(mean, std_dev);
+        std::normal_distribution<double> gauss(vel_mean, vel_variance);
         double vel_noise = gauss(get_random());
         new_left_rads += vel_noise;
         new_right_rads += vel_noise;
@@ -172,6 +174,43 @@ void wheel_cmd_handler(const nuturtlebot_msgs::WheelCommands& msg)
     sensor_data.left_encoder = sensor_data.left_encoder % ENCODER_RESOLUTION;
     sensor_data.right_encoder = sensor_data.right_encoder % ENCODER_RESOLUTION;
 
+}
+
+
+/// \brief Timer callback to publish update on obstacles
+///
+/// \param timerevent - ros timerevent required for function, not used.
+void pub_fake_sensor(const ros::TimerEvent&)
+{
+    std::normal_distribution<double> gauss(0.0, basic_sensor_variance);
+    visualization_msgs::MarkerArray fake_sensor_readings;
+
+    for (visualization_msgs::Markers cylin: cylinder)
+    {
+        //Start 
+        visualization_msgs::Marker reading;
+        reading.header.stamp = ros::Time::now();
+        reading.header.frame_id = "world";
+        reading.ns = "fake_sensor";
+        reading.id = cylin.id;
+        reading.type = cylin.type;
+        reading.pose.position.z = cylin.pose.position.z;
+        reading.pose.orientation.x = cylin.pose.orientation.x;
+        reading.pose.orientation.y = cylin.pose.orientation.y;
+        reading.pose.orientation.z = cylin.pose.orientation.z;
+        reading.pose.orientation.w = cylin.pose.orientation.w;
+        reading.scale.x = cylin.scale.x;
+        reading.scale.y = cylin.scale.y;
+        reading.scale.z = cylin.scale.z;
+        reading.color.r = cylin.color.r;
+        reading.color.g = cylin.color.g;
+        reading.color.b = cylin.color.b;
+        reading.color.a = 0.0;
+
+        reading.action = visualization_msgs::Marker::ADD;
+        reading.pose.position.x = obs_x[i];
+        reading.pose.position.y = obs_y[i];
+    }
 }
 
 //Nusim Main Function
@@ -199,11 +238,14 @@ int main(int argc, char *argv[])
     nh.param("obstacles/obs_y", obs_y, DEFAULT_OBS_LIST);
     nh.param("obstacles/radius", obs_radius, DEFAULT_RADIUS);
     //Distribution params
-    nh.param("dist/mean", mean, DEFAULT_MEAN);
-    nh.param("dist/std_dev", std_dev, DEFAULT_STD_DEV);
+    nh.param("dist/vel_mean", vel_mean, DEFAULT_MEAN);
+    nh.param("dist/vel_variance", vel_variance, DEFAULT_VARIANCE);
     nh.param("dist/slip_min", slip_min, DEFAULT_SLIP);
     nh.param("dist/slip_max", slip_max, DEFAULT_SLIP);
-    
+    //Sensor params
+    nh.param("sensor/basic_sensor_variance", basic_sensor_variance, DEFAULT_VARIANCE);
+    nh.param("sensor/max_range", max_range, DEFAULT_RANGE);
+    //Namespace params
     nh.param("red_space", red_space, DEFAULT_SIM_SPACE);
 
     //Get Arena Param
@@ -276,7 +318,7 @@ int main(int argc, char *argv[])
     const auto timestep_pub = nh.advertise<std_msgs::UInt64>("timestep", QUEUE_SIZE);
     const auto encoder_pub = pub_nh.advertise<nuturtlebot_msgs::SensorData>("red/sensor_data", QUEUE_SIZE);
     const auto cylinder_pub = nh.advertise<visualization_msgs::MarkerArray>("obstacles", QUEUE_SIZE, true);
-    const auto walls_pub = nh.advertise<visualization_msgs::MarkerArray>("walls", QUEUE_SIZE, true); 
+    const auto walls_pub = nh.advertise<visualization_msgs::MarkerArray>("walls", QUEUE_SIZE, true);
     const auto wheel_cmd_sub = pub_nh.subscribe("red/wheel_cmd", QUEUE_SIZE, wheel_cmd_handler);
     const auto reset_srv = nh.advertiseService("reset", reset);
     const auto teleport_srv = nh.advertiseService("teleport", teleport);
@@ -290,7 +332,6 @@ int main(int argc, char *argv[])
     diff_drive.set_configuration(theta_init, x_init, y_init);
 
     //Publish Obstacle Markers
-    visualization_msgs::MarkerArray cylinders;
     if (obs_radius > 0.0 && obs_x.size() > 0.0 && obs_x.size() == obs_y.size())
     {
         for(long unsigned int i=0;i < obs_x.size(); i++)
@@ -323,6 +364,9 @@ int main(int argc, char *argv[])
 
     cylinder_pub.publish(cylinders);
 
+    //Create fake_sensor_publisher: this relies on cylinders so let cylinders be init
+    const auto fake_sensor_pub = pub_nh.advertise<visualization_msgs::MarkerArray>("fake_sensor", QUEUE_SIZE) 
+    const auto fake_sensor_time = nh.createTimer(ros::Duration(0.2), pub_fake_sensor)
 
     //Publish Wall Markers
     visualization_msgs::MarkerArray walls;        

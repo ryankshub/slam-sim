@@ -12,7 +12,10 @@ nusim:
     x_length: 5    # x-length of the arena(m)
     y_length: 4    # y-length of the arena(m)
   dist:
-    mean: 0
-    std_dev: 0.01
+    vel_mean: 0
+    vel_variance: 0.01
     slip_min: .9
     slip_max: 1.1
+  sensor:
+    basic_sensor_variance: 0.01
+    max_range: 1.2
