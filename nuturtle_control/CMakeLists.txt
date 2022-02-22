@@ -240,7 +240,7 @@ install(DIRECTORY
 if(CATKIN_ENABLE_TESTING)
   # Test for turtle_interface
   catch_add_rostest_node(test_turtle_interface test/turtle_interface_test.cpp)
-  
+  add_dependencies(test_turtle_interface ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
   target_link_libraries(test_turtle_interface
     ${catkin_LIBRARIES}
     turtlelib
@@ -249,7 +249,7 @@ if(CATKIN_ENABLE_TESTING)
 
   # Test for odometry
   catch_add_rostest_node(test_odometry test/turtle_odom_test_node.cpp)
-
+  add_dependencies(test_odometry ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
   target_link_libraries(test_odometry
     ${catkin_LIBRARIES}
     turtlelib

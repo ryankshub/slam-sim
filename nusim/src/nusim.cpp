@@ -15,8 +15,7 @@
 ///     y_length(double): Y length of the arena
 ///     wheel_radius(double, required): radius of the robot's wheels
 ///     track_width (double, required): distance between the robot's wheels 
-///     motor_cmd_to_rads(double, required): Conversion rate from ticks/secs to rad/sec
-///     encoder_ticks_to_rad(double,required): Conversion rate from encoder ticks to radians   
+///     motor_cmd_to_rads(double, required): Conversion rate from ticks/secs to rad/sec  
 /// PUBLISHES:
 ///     nusim/timestep (std_msgs::UInt64): The timestep of the simulation
 ///     nusim/obstacles (visualization_msgs::MarkerArray): The list of cylinder Marker obstacles to 
@@ -36,6 +35,7 @@
 //Project include
 #include "turtlelib/diff_drive.hpp"
 //C++ includes
+#include <cmath>
 #include <cstdint>
 #include <random>
 #include <vector>
@@ -78,21 +78,20 @@ static int rate;
 static double x_init;
 static double y_init;
 static double theta_init;
-static double encoder_ticks_to_rad;
 static double motor_cmd_to_rads;
 static turtlelib::DiffDrive diff_drive;
 static nuturtlebot_msgs::SensorData sensor_data;
-static std::vector<double> obs_x;
-static std::vector<double> obs_y;
-static double obs_radius;
 static double x_length;
 static double y_length; 
 static double vel_mean;
 static double vel_variance;
 static double slip_min;
 static double slip_max;
-static visualization_msgs::MarkerArray cylinder;
-
+static double basic_sensor_variance;
+static double max_range;
+static visualization_msgs::MarkerArray cylinders;
+static bool publish_fake_sensor = false;
+static visualization_msgs::MarkerArray fake_sensor_readings;
 
 // Nusim Node's functions
 
@@ -180,18 +179,21 @@ void wheel_cmd_handler(const nuturtlebot_msgs::WheelCommands& msg)
 /// \brief Timer callback to publish update on obstacles
 ///
 /// \param timerevent - ros timerevent required for function, not used.
-void pub_fake_sensor(const ros::TimerEvent&)
+void prep_fake_sensor(const ros::TimerEvent&)
 {
+    //Set publish signal high
+    publish_fake_sensor = true;
+    //Set up normal distribution
     std::normal_distribution<double> gauss(0.0, basic_sensor_variance);
-    visualization_msgs::MarkerArray fake_sensor_readings;
 
-    for (visualization_msgs::Markers cylin: cylinder)
+    // Read from obstacle array cylinder
+    for (visualization_msgs::Marker cylin: cylinders.markers)
     {
-        //Start 
+        //Fill out basic infomation
         visualization_msgs::Marker reading;
         reading.header.stamp = ros::Time::now();
-        reading.header.frame_id = "world";
-        reading.ns = "fake_sensor";
+        reading.header.frame_id = "red-base_footprint";
+        reading.ns = "fake_sensor"; //Namespace in fake_sensor
         reading.id = cylin.id;
         reading.type = cylin.type;
         reading.pose.position.z = cylin.pose.position.z;
@@ -202,14 +204,27 @@ void pub_fake_sensor(const ros::TimerEvent&)
         reading.scale.x = cylin.scale.x;
         reading.scale.y = cylin.scale.y;
         reading.scale.z = cylin.scale.z;
-        reading.color.r = cylin.color.r;
-        reading.color.g = cylin.color.g;
-        reading.color.b = cylin.color.b;
-        reading.color.a = 0.0;
-
-        reading.action = visualization_msgs::Marker::ADD;
-        reading.pose.position.x = obs_x[i];
-        reading.pose.position.y = obs_y[i];
+        // Make sensor reading green for visualization
+        reading.color.r = 0;
+        reading.color.g = 1;
+        reading.color.b = 0;
+        reading.color.a = 1.0;
+        // Update location of marker, make position relative, and add noise
+        turtlelib::Transform2D Twr {diff_drive.location(), diff_drive.theta()};
+        turtlelib::Transform2D Two {turtlelib::Vector2D{cylin.pose.position.x, cylin.pose.position.y}, 0};
+        turtlelib::Transform2D Tro = Twr.inv() * Two;
+        reading.pose.position.x = (Tro.translation().x) + gauss(get_random());
+        reading.pose.position.y = (Tro.translation().y) + gauss(get_random());
+        double distance = std::sqrt(pow(reading.pose.position.x,2.0) + pow(reading.pose.position.y,2.0));
+        //Check if marker in range
+        if (distance <= max_range) 
+        {
+            reading.action = visualization_msgs::Marker::ADD;
+        } else {
+            reading.action = visualization_msgs::Marker::DELETE;
+        }
+        //Update reading
+        fake_sensor_readings.markers.at(reading.id) = reading;
     }
 }
 
@@ -222,8 +237,16 @@ int main(int argc, char *argv[])
     ros::NodeHandle pub_nh;
     tf2_ros::TransformBroadcaster br; 
 
+    //Local obstacle params
+    std::vector<double> obs_x;
+    std::vector<double> obs_y;
+    double obs_radius;
+
+    //Local diff_drive params
     double wheel_radius = 0.0;
     double track_width = 0.0;
+    
+    //Local namespacing params
     bool red_space = true;
 
     //Get Params
@@ -276,18 +299,14 @@ int main(int argc, char *argv[])
         return(1); //return 1 to indicate error
         }
 
-        if (!pub_nh.getParam("red/encoder_ticks_to_rad", encoder_ticks_to_rad))
+        if (!pub_nh.getParam("red/motor_cmd_to_rads", motor_cmd_to_rads))
         {
-        ROS_ERROR_STREAM("Nusim: Cannot find encoder_ticks_to_rad"); 
+        ROS_ERROR_STREAM("Nusim: Cannot find motor_cmd_to_rads"); 
         return(1); //return 1 to indicate error
         } 
 
-        if (!pub_nh.getParam("red/motor_cmd_to_rads", motor_cmd_to_rads))
-        {
-        ROS_ERROR_STREAM("Nusim: Cannot find encoder_ticks_to_rad"); 
-        return(1); //return 1 to indicate error
-        } 
     } else { //If parameters are not in red space
+
         if (!pub_nh.getParam("wheel_radius", wheel_radius))
         {
         ROS_ERROR_STREAM("Nusim: Cannot find wheel_radius"); 
@@ -300,15 +319,9 @@ int main(int argc, char *argv[])
         return(1); //return 1 to indicate error
         }
 
-        if (!pub_nh.getParam("encoder_ticks_to_rad", encoder_ticks_to_rad))
-        {
-        ROS_ERROR_STREAM("Nusim: Cannot find encoder_ticks_to_rad"); 
-        return(1); //return 1 to indicate error
-        } 
-
         if (!pub_nh.getParam("motor_cmd_to_rads", motor_cmd_to_rads))
         {
-        ROS_ERROR_STREAM("Nusim: Cannot find encoder_ticks_to_rad"); 
+        ROS_ERROR_STREAM("Nusim: Cannot find motor_cmd_to_rads"); 
         return(1); //return 1 to indicate error
         } 
     }
@@ -357,16 +370,17 @@ int main(int argc, char *argv[])
             cylin.color.g = 0.0;
             cylin.color.b = 0.0;
             cylin.color.a = 1.0;
-
+            //Populate static cylinders and noisy fake_sensor_readings
             cylinders.markers.push_back(cylin);
+            fake_sensor_readings.markers.push_back(cylin);
         }
     }
-
+    //Publish static obstacles
     cylinder_pub.publish(cylinders);
 
     //Create fake_sensor_publisher: this relies on cylinders so let cylinders be init
-    const auto fake_sensor_pub = pub_nh.advertise<visualization_msgs::MarkerArray>("fake_sensor", QUEUE_SIZE) 
-    const auto fake_sensor_time = nh.createTimer(ros::Duration(0.2), pub_fake_sensor)
+    const auto fake_sensor_pub = pub_nh.advertise<visualization_msgs::MarkerArray>("fake_sensor", QUEUE_SIZE); 
+    const auto fake_sensor_time = nh.createTimer(ros::Duration(0.2), prep_fake_sensor);
 
     //Publish Wall Markers
     visualization_msgs::MarkerArray walls;        
@@ -496,6 +510,13 @@ int main(int argc, char *argv[])
         msg.data = timestep;
         timestep_pub.publish(msg);
         encoder_pub.publish(sensor_data);
+
+        //Fake sensor publishing
+        if (publish_fake_sensor)
+        {
+            publish_fake_sensor = false;
+            fake_sensor_pub.publish(fake_sensor_readings);
+        }
 
         //Grab data
         ros::spinOnce();
