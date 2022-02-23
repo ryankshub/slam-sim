@@ -8,14 +8,26 @@ nusim:
     obs_x: [-0.6, 0.6, 0.6]  #x position of the cylinders (m)
     obs_y: [-0.8, -0.8, 0.8] #y position of the cylinders (m)
     radius: 0.038            #radius of the cylinders (m)
+  # Wall Arena measurements
   arena:
     x_length: 5    # x-length of the arena(m)
     y_length: 4    # y-length of the arena(m)
+  # Robot velocity and wheel noise
   dist:
-    vel_mean: 0
-    vel_variance: 0.01
-    slip_min: .9
-    slip_max: 1.1
+    vel_mean: 0           #mean of noisy velocity command
+    vel_variance: 0.01    #Std_dev of the noisy velocity command
+    slip_min: .95         # Minimum wheel slip coeff
+    slip_max: 1.05        # Maximum wheel slip coeff
+  # Obstacle detection noise
   sensor:
-    basic_sensor_variance: 0.01
-    max_range: 5
+    basic_sensor_variance: 0.01 # Std_dev for obstacle position
+    max_range: 1.2              # Max range to see obstacle
+  # Laser Sensor Specs
+  laser:
+    min_range: 0.120            # minimum distance laser can detect object
+    max_range: 3.5              # maximum distance laser can detect object
+    resolution_range: 0.015     # resolution of distance measurement
+    angle_samples: 360          # Number of angluar samples
+    noise_mean: 0.0             # Mean of the noisy influence
+    noise_dev: 0.01             # Std_dev of the noisy influence
+

@@ -46,6 +46,7 @@
 #include "nuturtlebot_msgs/WheelCommands.h"
 #include "ros/ros.h"
 #include "sensor_msgs/JointState.h"
+#include "sensor_msgs/LaserScan.h"
 #include "std_msgs/UInt64.h"
 #include "std_srvs/Empty.h"
 #include "tf2/LinearMath/Quaternion.h"
@@ -67,11 +68,17 @@ static const double WALL_THICKNESS = 0.1;
 static const double WALL_HEIGHT = 0.25;
 static const bool DEFAULT_SIM_SPACE = true;
 static const int ENCODER_RESOLUTION = 4096;
-static const double DEFAULT_MEAN = 0.0;
-static const double DEFAULT_VARIANCE = 0.0;
-static const double DEFAULT_SLIP = 1.0;
-static const double DEFAULT_RANGE = 100.0;
+static const double DEFAULT_VEL_MEAN = 0.0;
+static const double DEFAULT_VEL_VARIANCE = 0.0;
+static const double DEFAULT_WHEEL_SLIP = 1.0;
+static const double DEFAULT_OBS_RANGE = 100.0;
 static const double DEFAULT_COLLISION_RADIUS = 0.5;
+static const double DEFAULT_LASER_MIN_RANGE = 0.120;
+static const double DEFAULT_LASER_MAX_RANGE = 3.5;
+static const double DEFAULT_LASER_RESOLUTION = 0.015;
+static const int DEFAULT_ANGLE_SAMPLES = 360;
+static const double DEFAULT_LASER_NOISE_MEAN = 0.0;
+static const double DEFAULT_LASER_NOISE_DEV = 0.01;
 
 // Nusim Node's variables
 static std::uint64_t timestep = 0;
@@ -94,6 +101,13 @@ static double max_range;
 static visualization_msgs::MarkerArray cylinders;
 static bool publish_fake_sensor = false;
 static visualization_msgs::MarkerArray fake_sensor_readings;
+static bool publish_laser_sensor = false;
+static double laser_min_range;
+static double laser_max_range;
+static double laser_resolution;
+static int angle_samples;
+static double laser_noise_mean;
+static double laser_noise_dev;
 
 
 // Nusim Node's functions
@@ -110,6 +124,7 @@ std::mt19937 & get_random()
     // same object every time get_random is called
     return mt;
 }
+
 
 /// \brief Cycle through known objects to determine if the robot has collided
 /// If the robot has collided, adjust robot's position
@@ -145,6 +160,7 @@ bool reset(std_srvs::Empty::Request &,
     return true;
 }
 
+
 /// \brief Callback fcn teleport service. Teleports robot
 ///
 /// \param req - Teleport Request
@@ -156,6 +172,7 @@ bool teleport(nusim::Teleport::Request &req,
     diff_drive.set_configuration(req.theta, req.x, req.y);
     return true;
 }
+
 
 /// \brief Callback fcn to wheel_cmd subscriber. Grabs the current
 /// wheel velocity commands in ticks and updates the internal position
@@ -200,9 +217,9 @@ void wheel_cmd_handler(const nuturtlebot_msgs::WheelCommands& msg)
 }
 
 
-/// \brief Timer callback to publish fake_sensor_readings
-///
-/// \param timerevent - ros timerevent required for function, not used.
+/// \brief Timer callback to publish fake_sensor_readings. These readings provide
+/// noisy landmark locations. 
+/// \param TimerEvent - ros TimerEvent required for function, not used.
 void prep_fake_sensor(const ros::TimerEvent&)
 {
     //Set publish signal high
@@ -252,6 +269,16 @@ void prep_fake_sensor(const ros::TimerEvent&)
     }
 }
 
+
+/// \brief 
+///
+/// \param /// \param TimerEvent - ros TimerEvent required for function, not used.
+void prep_laser_sensor(const ros::TimerEvent&)
+{
+    publish_laser_sensor = true;
+}
+
+
 //Nusim Main Function
 int main(int argc, char *argv[])
 {
@@ -285,15 +312,22 @@ int main(int argc, char *argv[])
     nh.param("obstacles/obs_y", obs_y, DEFAULT_OBS_LIST);
     nh.param("obstacles/radius", obs_radius, DEFAULT_RADIUS);
     //Distribution params
-    nh.param("dist/vel_mean", vel_mean, DEFAULT_MEAN);
-    nh.param("dist/vel_variance", vel_variance, DEFAULT_VARIANCE);
-    nh.param("dist/slip_min", slip_min, DEFAULT_SLIP);
-    nh.param("dist/slip_max", slip_max, DEFAULT_SLIP);
+    nh.param("dist/vel_mean", vel_mean, DEFAULT_VEL_MEAN);
+    nh.param("dist/vel_variance", vel_variance, DEFAULT_VEL_VARIANCE);
+    nh.param("dist/slip_min", slip_min, DEFAULT_WHEEL_SLIP);
+    nh.param("dist/slip_max", slip_max, DEFAULT_WHEEL_SLIP);
     //Sensor params
-    nh.param("sensor/basic_sensor_variance", basic_sensor_variance, DEFAULT_VARIANCE);
-    nh.param("sensor/max_range", max_range, DEFAULT_RANGE);
+    nh.param("sensor/basic_sensor_variance", basic_sensor_variance, DEFAULT_VEL_VARIANCE);
+    nh.param("sensor/max_range", max_range, DEFAULT_OBS_RANGE);
     //Namespace params
     nh.param("red_space", red_space, DEFAULT_SIM_SPACE);
+    //Laser sensor params
+    nh.param("laser/min_range", laser_min_range, DEFAULT_LASER_MIN_RANGE);
+    nh.param("laser/max_range", laser_max_range, DEFAULT_LASER_MAX_RANGE);
+    nh.param("laser/resolution_range", laser_resolution, DEFAULT_LASER_RESOLUTION);
+    nh.param("laser/angle_samples", angle_samples, DEFAULT_ANGLE_SAMPLES);
+    nh.param("laser/noise_mean", laser_noise_mean, DEFAULT_LASER_NOISE_MEAN);
+    nh.param("laser/noise_dev", laser_noise_dev, DEFAULT_LASER_NOISE_DEV);
 
     //Get Arena Param
     if(!nh.getParam("arena/x_length", x_length))
@@ -360,9 +394,11 @@ int main(int argc, char *argv[])
     const auto encoder_pub = pub_nh.advertise<nuturtlebot_msgs::SensorData>("red/sensor_data", QUEUE_SIZE);
     const auto cylinder_pub = nh.advertise<visualization_msgs::MarkerArray>("obstacles", QUEUE_SIZE, true);
     const auto walls_pub = nh.advertise<visualization_msgs::MarkerArray>("walls", QUEUE_SIZE, true);
+    const auto laser_pub = nh.advertise<sensor_msgs::LaserScan>("lidar", 100, true);
     const auto wheel_cmd_sub = pub_nh.subscribe("red/wheel_cmd", QUEUE_SIZE, wheel_cmd_handler);
     const auto reset_srv = nh.advertiseService("reset", reset);
     const auto teleport_srv = nh.advertiseService("teleport", teleport);
+    const auto laser_time = nh.createTimer(ros::Duration(0.2), prep_laser_sensor);
     geometry_msgs::TransformStamped ts;
 
     //Set up Rate object
@@ -407,7 +443,7 @@ int main(int argc, char *argv[])
     cylinder_pub.publish(cylinders);
 
     //Create fake_sensor_publisher: this relies on cylinders so let cylinders be init
-    const auto fake_sensor_pub = pub_nh.advertise<visualization_msgs::MarkerArray>("fake_sensor", QUEUE_SIZE); 
+    const auto fake_sensor_pub = pub_nh.advertise<visualization_msgs::MarkerArray>("fake_sensor", 100, true); 
     const auto fake_sensor_time = nh.createTimer(ros::Duration(0.2), prep_fake_sensor);
 
     //Publish Wall Markers
