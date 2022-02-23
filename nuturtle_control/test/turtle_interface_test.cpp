@@ -293,11 +293,11 @@ TEST_CASE("Turtle Interface Test: Sensor_Encoded", "[turtle_interface_test]")
             if (test_joint_states.name.at(i) == wheel_left) 
             {
                 CHECK(test_joint_states.position.at(i) == Approx( 1.570816 ).margin(EPSILON));
-                CHECK(test_joint_states.velocity.at(i) == Approx( 1.5 ).margin(EPSILON));
+                CHECK(test_joint_states.velocity.at(i) == Approx( 1.488 ).margin(EPSILON));
             } else if (test_joint_states.name.at(i) == wheel_right){
 
                 CHECK(test_joint_states.position.at(i) == Approx( -1.047643 ).margin(EPSILON));
-                CHECK(test_joint_states.velocity.at(i) == Approx( 1.5 ).margin(EPSILON));
+                CHECK(test_joint_states.velocity.at(i) == Approx( 1.488 ).margin(EPSILON));
             }
         }
     }

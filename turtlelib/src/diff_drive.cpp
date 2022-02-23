@@ -219,4 +219,32 @@ namespace turtlelib {
         os << "radius: " << dd.mWheel_rad << " track: " << dd.mWheel_track;
         return os;
     }
+
+    //Resolving Collision Function
+    bool resolve_collision(DiffDrive & dd, double robot_radius, Vector2D obs_pose, double obs_radius)
+    {
+        //Get the distance between robot and obstacle
+        Vector2D robot_pose = dd.location();
+        Vector2D dist_vect = robot_pose - obs_pose;
+        double distance = magnitude(dist_vect);
+        double threshold = robot_radius + obs_radius;
+        //Check for collision
+        if (distance < threshold)
+        {
+            //Collision occured, displace robot
+            //If robot and obstacle are on top of each other, jettison the obs right
+            double vect_angle = 0.0;
+            if (!(almost_equal(dist_vect.x, 0.0) && almost_equal(dist_vect.y, 0.0)))
+            {
+                vect_angle = std::atan2(dist_vect.y, dist_vect.x);
+            }
+            double new_x = threshold*std::cos(vect_angle) + obs_pose.x;
+            double new_y = threshold*std::sin(vect_angle) + obs_pose.y;
+            dd.set_configuration(dd.theta(), new_x, new_y);
+
+            return true;
+        }
+        //No collision; do nothing
+        return false;
+    }
 }

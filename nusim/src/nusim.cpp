@@ -71,6 +71,7 @@ static const double DEFAULT_MEAN = 0.0;
 static const double DEFAULT_VARIANCE = 0.0;
 static const double DEFAULT_SLIP = 1.0;
 static const double DEFAULT_RANGE = 100.0;
+static const double DEFAULT_COLLISION_RADIUS = 0.5;
 
 // Nusim Node's variables
 static std::uint64_t timestep = 0;
@@ -79,6 +80,7 @@ static double x_init;
 static double y_init;
 static double theta_init;
 static double motor_cmd_to_rads;
+static double collision_radius;
 static turtlelib::DiffDrive diff_drive;
 static nuturtlebot_msgs::SensorData sensor_data;
 static double x_length;
@@ -93,20 +95,39 @@ static visualization_msgs::MarkerArray cylinders;
 static bool publish_fake_sensor = false;
 static visualization_msgs::MarkerArray fake_sensor_readings;
 
+
 // Nusim Node's functions
 
 /// \brief Create a random number device for C++ distribution functions
 /// Originally by Matt Elwin for SLAM 495
 /// \return Return random number device
- std::mt19937 & get_random()
- {
-     // static variables inside a function are created once and persist for the remainder of the program
-     static std::random_device rd{}; 
-     static std::mt19937 mt{rd()};
-     // we return a reference to the pseudo-random number genrator object. This is always the
-     // same object every time get_random is called
-     return mt;
- }
+std::mt19937 & get_random()
+{
+    // static variables inside a function are created once and persist for the remainder of the program
+    static std::random_device rd{}; 
+    static std::mt19937 mt{rd()};
+    // we return a reference to the pseudo-random number genrator object. This is always the
+    // same object every time get_random is called
+    return mt;
+}
+
+/// \brief Cycle through known objects to determine if the robot has collided
+/// If the robot has collided, adjust robot's position
+void collision_detection(turtlelib::DiffDrive & dd, double robot_radius)
+{
+    for (visualization_msgs::Marker cylin : cylinders.markers)
+    { 
+        turtlelib::Vector2D obs_pose{cylin.pose.position.x, cylin.pose.position.y};
+        bool collision = turtlelib::resolve_collision(dd, 
+                                                      robot_radius, 
+                                                      obs_pose,
+                                                      cylin.scale.x);
+        if (collision)
+        {
+            break; //We only consider one collision per call
+        }
+    }
+}
 
 
 //Nusim Node's callbacks
@@ -160,6 +181,9 @@ void wheel_cmd_handler(const nuturtlebot_msgs::WheelCommands& msg)
     //Update configuration
     diff_drive.apply_fw_kin_vel(new_left_rads, new_right_rads);
 
+    //Resolve any collisions
+    collision_detection(diff_drive, collision_radius);
+
     //Calculate wheel slip 
     std::uniform_real_distribution<double> uni(slip_min, slip_max);
     //Convert new velocity to ticks
@@ -176,7 +200,7 @@ void wheel_cmd_handler(const nuturtlebot_msgs::WheelCommands& msg)
 }
 
 
-/// \brief Timer callback to publish update on obstacles
+/// \brief Timer callback to publish fake_sensor_readings
 ///
 /// \param timerevent - ros timerevent required for function, not used.
 void prep_fake_sensor(const ros::TimerEvent&)
@@ -305,6 +329,8 @@ int main(int argc, char *argv[])
         return(1); //return 1 to indicate error
         } 
 
+        pub_nh.param("red/collision_radius", collision_radius, DEFAULT_COLLISION_RADIUS);
+
     } else { //If parameters are not in red space
 
         if (!pub_nh.getParam("wheel_radius", wheel_radius))
@@ -324,6 +350,8 @@ int main(int argc, char *argv[])
         ROS_ERROR_STREAM("Nusim: Cannot find motor_cmd_to_rads"); 
         return(1); //return 1 to indicate error
         } 
+
+        pub_nh.param("collision_radius", collision_radius, DEFAULT_COLLISION_RADIUS);
     }
 
 

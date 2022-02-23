@@ -148,7 +148,112 @@ TEST_CASE("normalize_angle -5pi/2 test", "[normalize_angle]")
 }
 
 
-////////////////// VECTOR2D ////////////
+/// resolve_collision tests
+/// TEST Clear no collision, no contact 
+/// \brief Test no collision when robot is 
+/// not near obstacle
+TEST_CASE("resolve_collision clear no collision", "[resolve_collision]")
+{
+    DiffDrive D{0.3, 0.4, 0.0, 2.0, 3.0};
+    double robot_radius = 2.0;
+    Vector2D obs{10.0, 8.0};
+    double obs_radius = 1.0;
+
+    bool collided = resolve_collision(D, robot_radius, obs, obs_radius);
+
+    Vector2D l_ans = D.location();
+    double ang_ans = D.theta();
+
+    REQUIRE(l_ans.x == Approx( 2.0 ).margin(EPSILON));
+    REQUIRE(l_ans.y == Approx( 3.0 ).margin(EPSILON));
+    REQUIRE(ang_ans == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(!collided);
+}
+
+/// TEST Clear no collision, kiss contact
+/// \brief Test no collision when robot is 
+/// barely tapping obstacle
+TEST_CASE("resolve_collision kiss no collision", "[resolve_collision]")
+{
+    DiffDrive D{0.3, 0.4, 0.0, 2.0, 3.0};
+    double robot_radius = 2.0;
+    Vector2D obs{5.0, 3.0};
+    double obs_radius = 1.0;
+
+    bool collided = resolve_collision(D, robot_radius, obs, obs_radius);
+
+    Vector2D l_ans = D.location();
+    double ang_ans = D.theta();
+
+    REQUIRE(l_ans.x == Approx( 2.0 ).margin(EPSILON));
+    REQUIRE(l_ans.y == Approx( 3.0 ).margin(EPSILON));
+    REQUIRE(ang_ans == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(!collided);
+}
+
+/// TEST Straight on Collision,
+/// \brief Test head-on collision 
+TEST_CASE("resolve_collision head-on collision", "[resolve_collision]")
+{
+    DiffDrive D{0.3, 0.4, 0.0, 3.0, 3.0};
+    double robot_radius = 2.0;
+    Vector2D obs{5.0, 3.0};
+    double obs_radius = 1.0;
+
+    bool collided = resolve_collision(D, robot_radius, obs, obs_radius);
+
+    Vector2D l_ans = D.location();
+    double ang_ans = D.theta();
+
+    REQUIRE(l_ans.x == Approx( 2.0 ).margin(EPSILON));
+    REQUIRE(l_ans.y == Approx( 3.0 ).margin(EPSILON));
+    REQUIRE(ang_ans == Approx( 0.0 ).margin(EPSILON));
+    REQUIRE(collided);
+}
+
+/// TEST Angled Collision,
+/// \brief Test collision from a angle
+TEST_CASE("resolve_collision collision from an angle", "[resolve_collision]")
+{
+    DiffDrive D{0.3, 0.4, PI/4.0, 3.0, 1.0};
+    double robot_radius = 2.0;
+    Vector2D obs{5.0, 3.0};
+    double obs_radius = 1.0;
+
+    bool collided = resolve_collision(D, robot_radius, obs, obs_radius);
+
+    Vector2D l_ans = D.location();
+    double ang_ans = D.theta();
+
+    REQUIRE(l_ans.x == Approx( 2.87867 ).margin(EPSILON));
+    REQUIRE(l_ans.y == Approx( 0.87867  ).margin(EPSILON));
+    REQUIRE(ang_ans == Approx( PI/4.0 ).margin(EPSILON));
+    REQUIRE(collided);
+}
+
+/// TEST Skid Collision,
+/// \brief Test collision from swiping obs
+TEST_CASE("resolve_collision collision from swiping obs", "[resolve_collision]")
+{
+    DiffDrive D{0.3, 0.4, PI/4.0, 3.0, 3.0};
+    double robot_radius = 2.0;
+    Vector2D obs{5.0, 3.0};
+    double obs_radius = 1.0;
+
+    bool collided = resolve_collision(D, robot_radius, obs, obs_radius);
+
+    Vector2D l_ans = D.location();
+    double ang_ans = D.theta();
+
+    REQUIRE(l_ans.x == Approx( 2.0 ).margin(EPSILON));
+    REQUIRE(l_ans.y == Approx( 3.0 ).margin(EPSILON));
+    REQUIRE(ang_ans == Approx( PI/4.0 ).margin(EPSILON));
+    REQUIRE(collided);
+}
+
+
+
+////////////////// VECTOR2D /////////////////////////////////////////////////////////
 
 /// TEST Vector2D ADD ASSIGN +=
 /// \brief Test adding empty vectors
@@ -1963,3 +2068,4 @@ TEST_CASE("DiffDrive apply twist w/ invalid twist", "[DiffDrive]")
     //Inv Kin
     REQUIRE_THROWS(D.apply_twist(B));
 }
+

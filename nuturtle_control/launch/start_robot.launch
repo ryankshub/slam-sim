@@ -4,6 +4,7 @@
     <arg name="cmd_src" default="none" doc="The source of the cmd_vel command"/>
     <arg name="robot" default="nusim" doc="Whether the robot is running in simulation or real world"/>
     <arg name="use_rviz" default="true" doc="Set true to display rviz"/>
+    <arg name="noiseless" default="false" doc="Set true to run robot without noise"/>
 
     <!-- Parse cmd_src -->
     <group if="$(eval cmd_src == 'circle')">
@@ -33,7 +34,15 @@
         <remap from="red/wheel_cmd" to="wheel_cmd"/>
         <param name="nusim/red_space" type="bool" value="false"/>
         <node pkg="nusim" type="nusim" name="nusim"/>
-        
+
+        <group if="$(eval noiseless == true)">
+            <param name="nusim/dist/vel_mean" value="0"/>
+            <param name="nusim/dist/vel_variance" value="0"/>
+            <param name="nusim/dist/slip_min" value="1"/>
+            <param name="nusim/dist/slip_max" value="1"/>
+            <param name="nusim/sensor/basic_sensor_variance" value="0"/>
+        </group>
+
         <!--Params for odometry-->
         <param name="body_id" value="blue-base_footprint"/>
         <param name="wheel_left" value="blue-wheel_left_joint"/>

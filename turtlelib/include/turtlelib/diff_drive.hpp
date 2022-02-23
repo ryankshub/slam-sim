@@ -122,6 +122,16 @@ namespace turtlelib {
     /// \param os - an output stream
     /// \param dd - diff drive to print
     std::ostream & operator<<(std::ostream & os, const DiffDrive & dd);
+
+    /// \brief check if robot has collided with object
+    /// if so, resolve the collision by adjusting robot's configuration
+    /// This conflict is resolved with robot as the origin
+    /// \param dd - Diff Drive of the robot
+    /// \param robot_radius - robot's collision radius
+    /// \param obs_pose - obstacle's location in the robot's frame
+    /// \param obs_radius - obstacle's collision radius
+    /// \return - true if robot collided
+    bool resolve_collision(DiffDrive & dd, double robot_radius, Vector2D obs_pose, double obs_radius);
 }
 
 #endif

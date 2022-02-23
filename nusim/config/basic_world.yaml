@@ -18,4 +18,4 @@ nusim:
     slip_max: 1.1
   sensor:
     basic_sensor_variance: 0.01
-    max_range: 1.2
+    max_range: 5
