@@ -24,8 +24,8 @@ namespace turtlelib {
     /// \param rad0 - radius of the obstacle
     /// \param pt - pt to populate if line intersects
     /// \return True if line intersects obstacle
-    bool check_obs_intersection(double x1, double x2, 
-                                double y1, double y2,
+    bool check_obs_intersection(double x1, double y1, 
+                                double x2, double y2,
                                 double x0, double y0, double rad0,
                                 Vector2D & pt);
 
@@ -41,8 +41,8 @@ namespace turtlelib {
     /// \param yW - y value of the wall
     /// \param pt - pt to populate if line intersects
     /// \return True if line intersects obstacle
-    bool check_wall_intersection(double x1, double x2, 
-                                 double y1, double y2,
+    bool check_wall_intersection(double x1, double y1, 
+                                 double x2, double y2,
                                  double ang_rad,
                                  double xW, double yW,
                                  Vector2D & pt); 

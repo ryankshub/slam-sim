@@ -1,12 +1,13 @@
 #include "turtlelib/laser_utils.hpp"
 #include <cmath>
+#include <iostream>
 
 namespace turtlelib {
 
 ///////////////////////LASER UTIL FCN//////////////////
     //Checks obstacles intersection
-    bool check_obs_intersection(double x1, double x2, 
-                                double y1, double y2,
+    bool check_obs_intersection(double x1, double y1, 
+                                double x2, double y2,
                                 double x0, double y0, double rad0,
                                 Vector2D & pt)
     {
@@ -15,7 +16,10 @@ namespace turtlelib {
         x2 = x2 - x0;
         y1 = y1 - y0;
         y2 = y2 - y0;
-
+        std::cout << "X1: " << x1;
+        std::cout << " Y1: " << y1;
+        std::cout << " X2: " << x2;
+        std::cout << " Y2: " << y2 << std::endl;
         //Define factors
         double dx = x2 - x1;
         double dy = y2 - y1;
@@ -24,7 +28,7 @@ namespace turtlelib {
 
         //Calculate discriminant
         double discriminant = std::pow(rad0, 2.0)*dr_sq - std::pow(D, 2.0);
-
+        std::cout << "DISCRIMINANT " << discriminant << std::endl;
         //Check if not intersection
         if (discriminant <= 0)
         {
@@ -61,8 +65,8 @@ namespace turtlelib {
     }
 
     ///Checks Wall Intersection
-    bool check_wall_intersection(double x1, double x2, 
-                                 double y1, double y2,
+    bool check_wall_intersection(double x1, double y1, 
+                                 double x2, double y2,
                                  double ang_rad,
                                  double xW, double yW,
                                  Vector2D & pt)
@@ -90,6 +94,8 @@ namespace turtlelib {
 
             return false;
         }
+
+        return false;
     }
 
 }

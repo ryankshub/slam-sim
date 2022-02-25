@@ -5,6 +5,7 @@
 #include "catch_ros/catch.hpp"
 #include "turtlelib/rigid2d.hpp"
 #include "turtlelib/diff_drive.hpp"
+#include "turtlelib/laser_utils.hpp"
 #include <cmath>
 #include <sstream>
 #include <stdexcept>
@@ -1691,7 +1692,7 @@ TEST_CASE("integrate full motion Twist2D", "[Transform2D]")
 }
 
 
-////////////////// DIFFDRIVE ////////////
+////////////////// DIFFDRIVE //////////////////////////////////////////////////
 
 /// TEST DiffDrive::DiffDrive()
 /// \brief Test Empty Constructor
@@ -2069,3 +2070,72 @@ TEST_CASE("DiffDrive apply twist w/ invalid twist", "[DiffDrive]")
     REQUIRE_THROWS(D.apply_twist(B));
 }
 
+////////////////// LASER UTILS ////////////////////////////////////////////////
+
+//TEST for check_obs_intersection
+/// \brief Test no intersection case
+TEST_CASE("Check no intersection with obstacle", "[check_obs_intersection]")
+{
+    //Init objects
+    double x1 = 3.0;
+    double y1 = 5.0;
+    double x2 = 5.0;
+    double y2 = 7.0;
+    double x0 = 5.0;
+    double y0 = 5.0;
+    double rad0 = 1.0;
+    Vector2D pt{0.0, 0.0};
+
+    bool collision = check_obs_intersection(x1, y1, x2, y2,
+                                            x0, y0, rad0,
+                                            pt);
+    
+    REQUIRE(!collision);
+    REQUIRE(pt.x == Approx(0.0).margin(EPSILON));
+    REQUIRE(pt.y == Approx(0.0).margin(EPSILON));
+}
+
+/// \brief Test no intersection with tangent case
+TEST_CASE("Check no intersection with obstacle with tangent line", "[check_obs_intersection]")
+{
+    //Init objects
+    double factor = std::sqrt(2)/2.0;
+    double x1 = 3.0 - factor;
+    double y1 = 3.0 + factor;
+    double x2 = 7.0 - factor;
+    double y2 = 7.0 + factor;
+    double x0 = 5.0;
+    double y0 = 5.0;
+    double rad0 = 1.0;
+    Vector2D pt{0.0, 0.0};
+
+    bool collision = check_obs_intersection(x1, y1, x2, y2,
+                                            x0, y0, rad0,
+                                            pt);
+    
+    REQUIRE(!collision);
+    REQUIRE(pt.x == Approx(0.0).margin(EPSILON));
+    REQUIRE(pt.y == Approx(0.0).margin(EPSILON));
+}
+
+/// \brief Test intersection 
+TEST_CASE("Check intersection", "[check_obs_intersection]")
+{
+    //Init objects
+    double x1 = 3.0;
+    double y1 = 3.0;
+    double x2 = 7.0;
+    double y2 = 7.0;
+    double x0 = 5.0;
+    double y0 = 5.0;
+    double rad0 = 1.0;
+    Vector2D pt{0.0, 0.0};
+
+    bool collision = check_obs_intersection(x1, y1, x2, y2,
+                                            x0, y0, rad0,
+                                            pt);
+    
+    REQUIRE(collision);
+    REQUIRE(pt.x == Approx(4.29289).margin(EPSILON));
+    REQUIRE(pt.y == Approx(4.29289).margin(EPSILON));
+}
