@@ -122,6 +122,7 @@ include_directories(
 add_library(${PROJECT_NAME}
     src/diff_drive.cpp
     src/rigid2d.cpp
+    src/laser_utils.cpp
 )
 
 ## Include directories for target

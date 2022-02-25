@@ -272,7 +272,7 @@ void prep_fake_sensor(const ros::TimerEvent&)
 
 /// \brief 
 ///
-/// \param /// \param TimerEvent - ros TimerEvent required for function, not used.
+/// \param TimerEvent - ros TimerEvent required for function, not used.
 void prep_laser_sensor(const ros::TimerEvent&)
 {
     publish_laser_sensor = true;
