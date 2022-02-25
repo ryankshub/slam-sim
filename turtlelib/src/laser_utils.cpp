@@ -16,10 +16,6 @@ namespace turtlelib {
         x2 = x2 - x0;
         y1 = y1 - y0;
         y2 = y2 - y0;
-        std::cout << "X1: " << x1;
-        std::cout << " Y1: " << y1;
-        std::cout << " X2: " << x2;
-        std::cout << " Y2: " << y2 << std::endl;
         //Define factors
         double dx = x2 - x1;
         double dy = y2 - y1;
@@ -28,7 +24,6 @@ namespace turtlelib {
 
         //Calculate discriminant
         double discriminant = std::pow(rad0, 2.0)*dr_sq - std::pow(D, 2.0);
-        std::cout << "DISCRIMINANT " << discriminant << std::endl;
         //Check if not intersection
         if (discriminant <= 0)
         {
@@ -67,29 +62,43 @@ namespace turtlelib {
     ///Checks Wall Intersection
     bool check_wall_intersection(double x1, double y1, 
                                  double x2, double y2,
-                                 double ang_rad,
+                                 double ang_rad, double sizeW,
                                  double xW, double yW,
                                  Vector2D & pt)
     {
         // Processing y-wall
         if (almost_equal(xW, 0.0)) {
-            //Check if intersection
-            if ((std::abs(yW) >= std::abs(y1)) && (std::abs(yW) <= std::abs(y2)))
+            //Check intersection
+            if (((std::abs(yW) > std::abs(y1)) || almost_equal(yW, y1)) && 
+                ((std::abs(yW) < std::abs(y2)) || almost_equal(yW, y2)))
             {
-                pt.x = yW/std::tan(ang_rad);
-                pt.y = yW;
-                return true;
+                //Check intersection happens in arena
+                double cal_x = yW/std::tan(ang_rad);
+                if ((std::abs(cal_x) < sizeW/2.0) || almost_equal(std::abs(cal_x), sizeW/2.0))
+                {
+                    pt.x = cal_x;
+                    pt.y = yW;
+                    return true;
+                }
+                
             }
 
             return false;
 
         // Processing x-walls
         } else if (almost_equal(yW, 0.0)) {
-            if ((std::abs(xW) >= std::abs(x1)) && (std::abs(xW) <= std::abs(x2)))
+            //Check intersection
+            if (((std::abs(xW) > std::abs(x1)) || almost_equal(xW, x1)) && 
+                ((std::abs(xW) < std::abs(x2)) || almost_equal(xW, x2)))
             {
-                pt.x = xW;
-                pt.y = xW*std::tan(ang_rad);
-                return true;
+                //Check intersection happens in arena
+                double cal_y = xW*std::tan(ang_rad);
+                if ((std::abs(cal_y) < sizeW/2.0) || almost_equal(std::abs(cal_y), sizeW/2.0))
+                {
+                    pt.x = xW;
+                    pt.y = cal_y;
+                    return true;
+                }
             }
 
             return false;

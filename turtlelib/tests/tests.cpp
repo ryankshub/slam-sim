@@ -2139,3 +2139,180 @@ TEST_CASE("Check intersection", "[check_obs_intersection]")
     REQUIRE(pt.x == Approx(4.29289).margin(EPSILON));
     REQUIRE(pt.y == Approx(4.29289).margin(EPSILON));
 }
+
+
+//TEST for check_wall_intersection
+/// \brief Check intersection with front wall
+TEST_CASE("Check intersection with front wall", "[check_wall_intersection]")
+{
+    //Init objects
+    double x1 = 1.0;
+    double y1 = -1.0;
+    double x2 = 6.0;
+    double y2 = -6.0;
+    double ang_rad = -PI/4.0;
+    double size = 8.0;
+    double xW = 4.0;
+    double yW = 0.0;
+    Vector2D pt{0.0, 0.0};
+
+    //Check intersection
+    bool collision = check_wall_intersection(x1, y1, x2, y2, 
+                                             ang_rad, size,
+                                             xW, yW, 
+                                             pt);
+    
+    REQUIRE(collision);
+    REQUIRE(pt.x == Approx(4.0).margin(EPSILON));
+    REQUIRE(pt.y == Approx(-4.0).margin(EPSILON));
+}
+
+/// \brief Check intersection with back wall
+TEST_CASE("Check intersection with back wall", "[check_wall_intersection]")
+{
+    //Init objects
+    double x1 = -1.0;
+    double y1 = 0.0;
+    double x2 = -6.0;
+    double y2 = 0.0;
+    double ang_rad = PI;
+    double size = 8.0;
+    double xW = -4.0;
+    double yW = 0.0;
+    Vector2D pt{0.0, 0.0};
+
+    //Check intersection
+    bool collision = check_wall_intersection(x1, y1, x2, y2, 
+                                             ang_rad, size,
+                                             xW, yW, 
+                                             pt);
+    
+    REQUIRE(collision);
+    REQUIRE(pt.x == Approx(-4.0).margin(EPSILON));
+    REQUIRE(pt.y == Approx(0.0).margin(EPSILON));
+}
+
+/// \brief Check intersection with left wall
+TEST_CASE("Check intersection with left wall", "[check_wall_intersection]")
+{
+    //Init objects
+    double x1 = 0.0;
+    double y1 = 1.0;
+    double x2 = 0.0;
+    double y2 = 6.0;
+    double ang_rad = PI/2.0;
+    double size = 8.0;
+    double xW = 0.0;
+    double yW = 3.0;
+    Vector2D pt{0.0, 0.0};
+
+    //Check intersection
+    bool collision = check_wall_intersection(x1, y1, x2, y2, 
+                                             ang_rad, size,
+                                             xW, yW, 
+                                             pt);
+    
+    REQUIRE(collision);
+    REQUIRE(pt.x == Approx(0.0).margin(EPSILON));
+    REQUIRE(pt.y == Approx(3.0).margin(EPSILON));
+}
+
+/// \brief Check intersection with right wall
+TEST_CASE("Check intersection with right wall", "[check_wall_intersection]")
+{
+    //Init objects
+    double x1 = -1.0;
+    double y1 = -1.0;
+    double x2 = -6.0;
+    double y2 = -6.0;
+    double ang_rad = -3*PI/4.0;
+    double size = 8.0;
+    double xW = 0.0;
+    double yW = -3.0;
+    Vector2D pt{0.0, 0.0};
+
+    //Check intersection
+    bool collision = check_wall_intersection(x1, y1, x2, y2, 
+                                             ang_rad, size,
+                                             xW, yW, 
+                                             pt);
+    
+    REQUIRE(collision);
+    REQUIRE(pt.x == Approx(-3.0).margin(EPSILON));
+    REQUIRE(pt.y == Approx(-3.0).margin(EPSILON));
+}
+
+/// \brief Check no intersection; wall too close
+TEST_CASE("Check no intersection; wall too close", "[check_wall_intersection]")
+{
+    //Init objects
+    double x1 = 5.0;
+    double y1 = 0.0;
+    double x2 = 11.0;
+    double y2 = 0.0;
+    double ang_rad = 0.0;
+    double size = 8.0;
+    double xW = 4.0;
+    double yW = 0.0;
+    Vector2D pt{0.0, 0.0};
+
+    //Check intersection
+    bool collision = check_wall_intersection(x1, y1, x2, y2, 
+                                             ang_rad, size,
+                                             xW, yW, 
+                                             pt);
+    
+    REQUIRE(!collision);
+    REQUIRE(pt.x == Approx(0.0).margin(EPSILON));
+    REQUIRE(pt.y == Approx(0.0).margin(EPSILON));
+}
+
+/// \brief Check no intersection; wall too far
+TEST_CASE("Check no intersection; wall too far", "[check_wall_intersection]")
+{
+    //Init objects
+    double x1 = 1.0;
+    double y1 = 0.0;
+    double x2 = 3.5;
+    double y2 = 0.0;
+    double ang_rad = 0.0;
+    double size = 8.0;
+    double xW = 4.0;
+    double yW = 0.0;
+    Vector2D pt{0.0, 0.0};
+
+    //Check intersection
+    bool collision = check_wall_intersection(x1, y1, x2, y2, 
+                                             ang_rad, size,
+                                             xW, yW, 
+                                             pt);
+    
+    REQUIRE(!collision);
+    REQUIRE(pt.x == Approx(0.0).margin(EPSILON));
+    REQUIRE(pt.y == Approx(0.0).margin(EPSILON));
+}
+
+/// \brief Check no intersection; intersection outside of arena
+TEST_CASE("Check no intersection; intersection outside of arena", "[check_wall_intersection]")
+{
+    //Init objects
+    double x1 = 1.0;
+    double y1 = -1.0;
+    double x2 = 6.0;
+    double y2 = -6.0;
+    double ang_rad = -PI/4.0;
+    double size = 6.0;
+    double xW = 4.0;
+    double yW = 0.0;
+    Vector2D pt{0.0, 0.0};
+
+    //Check intersection
+    bool collision = check_wall_intersection(x1, y1, x2, y2, 
+                                             ang_rad, size,
+                                             xW, yW, 
+                                             pt);
+    
+    REQUIRE(!collision);
+    REQUIRE(pt.x == Approx(0.0).margin(EPSILON));
+    REQUIRE(pt.y == Approx(0.0).margin(EPSILON));
+}
