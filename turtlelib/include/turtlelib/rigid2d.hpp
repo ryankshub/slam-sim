@@ -161,6 +161,12 @@ namespace turtlelib
     /// \return dot product of the vector
     double dot(const Vector2D & lvec, const Vector2D & rvec);
 
+    /// \brief compute the cross product of two vectors
+    /// \param lvec - left 2D vector
+    /// \param rvec - right 2D vector
+    /// \return cross product of the vector
+    double cross(const Vector2D & lvec, const Vector2D & rvec);
+
     /// \brief compute a vector's magnitude
     /// \param vec - 2D vector
     /// \return magnitude of the vector

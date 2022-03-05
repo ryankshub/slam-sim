@@ -36,16 +36,20 @@ namespace turtlelib {
     /// \param y1 - y value of first point on line
     /// \param x2 - x value of second point on line
     /// \param y2 - y value of second point on line
+    /// \param xW1 - x value of the first point on Wall
+    /// \param yW1 - x value of the first point on Wall
+    /// \param xW2 - x value of the first point on Wall
+    /// \param yW2 - x value of the first point on Wall
     /// \param ang_rad - angle of laser line (radians)
     /// \param sizeW - size of the wall (should be > 0)
     /// \param xW - x value of the wall
     /// \param yW - y value of the wall
     /// \param pt - pt to populate if line intersects
-    /// \return True if line intersects obstacle
+    /// \return True if line intersects wall
     bool check_wall_intersection(double x1, double y1, 
                                  double x2, double y2,
-                                 double ang_rad, double sizeW,
-                                 double xW, double yW,
+                                 double xW1, double yW1,
+                                 double xW2, double yW2,
                                  Vector2D & pt); 
 }
 

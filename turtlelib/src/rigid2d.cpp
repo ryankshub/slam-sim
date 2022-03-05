@@ -149,6 +149,12 @@ namespace turtlelib
         return (lvec.x*rvec.x) + (lvec.y*rvec.y);
     }
 
+    //cross product function
+    double cross(const Vector2D & lvec, const Vector2D & rvec)
+    {
+        return lvec.x*rvec.y - lvec.y*rvec.x;
+    }
+
     //magnitude function
     double magnitude(const Vector2D & vec)
     {

@@ -845,6 +845,57 @@ TEST_CASE("Vector2D magnitude, basic vector", "[Vector2D]")
     REQUIRE(resultD == Approx( ans ).margin(EPSILON));
 }
 
+
+/// TEST Vector2D CROSS PRODUCT
+/// \brief Test cross product of parallel vectors
+TEST_CASE("Vector2D cross, parallel vectors", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{2.0, 2.0};
+    Vector2D B{1.0, 1.0};
+
+    // Cross product result
+    double ans = 0.0;
+
+    // Operation
+    double result = cross(A, B);
+
+    REQUIRE(result == Approx( ans ).margin(EPSILON));
+}
+
+/// \brief Test cross product of perpendicular vectors
+TEST_CASE("Vector2D cross, perpendicular vectors", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{0.0, 2.0};
+    Vector2D B{2.0, 0.0};
+
+    // Cross product result
+    double ans = -4.0;
+
+    // Operation
+    double result = cross(A, B);
+
+    REQUIRE(result == Approx( ans ).margin(EPSILON));
+}
+
+/// \brief Test cross product of vectors
+TEST_CASE("Vector2D cross, regular vectors", "[Vector2D]")
+{
+    // Initialize test vectors
+    Vector2D A{0.0, 2.0};
+    Vector2D B{2.0, 2.0};
+
+    // Cross product result
+    double ans = -4.0;
+
+    // Operation
+    double result = cross(A, B);
+
+    REQUIRE(result == Approx( ans ).margin(EPSILON));
+}
+
+
 /// TEST Vector2D CALCULATE ANGLE
 /// \brief Test calculate angle of parallel vectors
 TEST_CASE("Vector2D angle, parallel vectors", "[Vector2D]")
@@ -2150,16 +2201,15 @@ TEST_CASE("Check intersection with front wall", "[check_wall_intersection]")
     double y1 = -1.0;
     double x2 = 6.0;
     double y2 = -6.0;
-    double ang_rad = -PI/4.0;
-    double size = 8.0;
-    double xW = 4.0;
-    double yW = 0.0;
+    double xW1 = 4.0;
+    double yW1 = -4.0;
+    double xW2 = 4.0;
+    double yW2 = 4.0;
     Vector2D pt{0.0, 0.0};
 
     //Check intersection
     bool collision = check_wall_intersection(x1, y1, x2, y2, 
-                                             ang_rad, size,
-                                             xW, yW, 
+                                             xW1, yW1, xW2, yW2, 
                                              pt);
     
     REQUIRE(collision);
@@ -2175,16 +2225,15 @@ TEST_CASE("Check intersection with back wall", "[check_wall_intersection]")
     double y1 = 0.0;
     double x2 = -6.0;
     double y2 = 0.0;
-    double ang_rad = PI;
-    double size = 8.0;
-    double xW = -4.0;
-    double yW = 0.0;
+    double xW1 = -4.0;
+    double yW1 = -4.0;
+    double xW2 = -4.0;
+    double yW2 = 4.0;
     Vector2D pt{0.0, 0.0};
 
     //Check intersection
     bool collision = check_wall_intersection(x1, y1, x2, y2, 
-                                             ang_rad, size,
-                                             xW, yW, 
+                                             xW1, yW1, xW2, yW2, 
                                              pt);
     
     REQUIRE(collision);
@@ -2200,16 +2249,15 @@ TEST_CASE("Check intersection with left wall", "[check_wall_intersection]")
     double y1 = 1.0;
     double x2 = 0.0;
     double y2 = 6.0;
-    double ang_rad = PI/2.0;
-    double size = 8.0;
-    double xW = 0.0;
-    double yW = 3.0;
+    double xW1 = 4.0;
+    double yW1 = 3.0;
+    double xW2 = -4.0;
+    double yW2 = 3.0;
     Vector2D pt{0.0, 0.0};
 
     //Check intersection
     bool collision = check_wall_intersection(x1, y1, x2, y2, 
-                                             ang_rad, size,
-                                             xW, yW, 
+                                             xW1, yW1, xW2, yW2, 
                                              pt);
     
     REQUIRE(collision);
@@ -2225,16 +2273,15 @@ TEST_CASE("Check intersection with right wall", "[check_wall_intersection]")
     double y1 = -1.0;
     double x2 = -6.0;
     double y2 = -6.0;
-    double ang_rad = -3*PI/4.0;
-    double size = 8.0;
-    double xW = 0.0;
-    double yW = -3.0;
+    double xW1 = 4.0;
+    double yW1 = -3.0;
+    double xW2 = -4.0;
+    double yW2 = -3.0;
     Vector2D pt{0.0, 0.0};
 
     //Check intersection
     bool collision = check_wall_intersection(x1, y1, x2, y2, 
-                                             ang_rad, size,
-                                             xW, yW, 
+                                             xW1, yW1, xW2, yW2, 
                                              pt);
     
     REQUIRE(collision);
@@ -2250,16 +2297,15 @@ TEST_CASE("Check no intersection; wall too close", "[check_wall_intersection]")
     double y1 = 0.0;
     double x2 = 11.0;
     double y2 = 0.0;
-    double ang_rad = 0.0;
-    double size = 8.0;
-    double xW = 4.0;
-    double yW = 0.0;
+    double xW1 = 4.0;
+    double yW1 = -4.0;
+    double xW2 = 4.0;
+    double yW2 = 4.0;
     Vector2D pt{0.0, 0.0};
 
     //Check intersection
     bool collision = check_wall_intersection(x1, y1, x2, y2, 
-                                             ang_rad, size,
-                                             xW, yW, 
+                                             xW1, yW1, xW2, yW2, 
                                              pt);
     
     REQUIRE(!collision);
@@ -2275,16 +2321,15 @@ TEST_CASE("Check no intersection; wall too far", "[check_wall_intersection]")
     double y1 = 0.0;
     double x2 = 3.5;
     double y2 = 0.0;
-    double ang_rad = 0.0;
-    double size = 8.0;
-    double xW = 4.0;
-    double yW = 0.0;
+    double xW1 = 4.0;
+    double yW1 = -4.0;
+    double xW2 = 4.0;
+    double yW2 = 4.0;
     Vector2D pt{0.0, 0.0};
 
     //Check intersection
     bool collision = check_wall_intersection(x1, y1, x2, y2, 
-                                             ang_rad, size,
-                                             xW, yW, 
+                                             xW1, yW1, xW2, yW2, 
                                              pt);
     
     REQUIRE(!collision);
@@ -2300,16 +2345,15 @@ TEST_CASE("Check no intersection; intersection outside of arena", "[check_wall_i
     double y1 = -1.0;
     double x2 = 6.0;
     double y2 = -6.0;
-    double ang_rad = -PI/4.0;
-    double size = 6.0;
-    double xW = 4.0;
-    double yW = 0.0;
+    double xW1 = 4.0;
+    double yW1 = -3.0;
+    double xW2 = 4.0;
+    double yW2 = 3.0;
     Vector2D pt{0.0, 0.0};
 
     //Check intersection
     bool collision = check_wall_intersection(x1, y1, x2, y2, 
-                                             ang_rad, size,
-                                             xW, yW, 
+                                             xW1, yW1, xW2, yW2, 
                                              pt);
     
     REQUIRE(!collision);

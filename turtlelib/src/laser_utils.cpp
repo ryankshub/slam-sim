@@ -62,46 +62,35 @@ namespace turtlelib {
     ///Checks Wall Intersection
     bool check_wall_intersection(double x1, double y1, 
                                  double x2, double y2,
-                                 double ang_rad, double sizeW,
-                                 double xW, double yW,
+                                 double xW1, double yW1,
+                                 double xW2, double yW2,
                                  Vector2D & pt)
     {
-        // Processing y-wall
-        if (almost_equal(xW, 0.0)) {
-            //Check intersection
-            if (((std::abs(yW) > std::abs(y1)) || almost_equal(yW, y1)) && 
-                ((std::abs(yW) < std::abs(y2)) || almost_equal(yW, y2)))
-            {
-                //Check intersection happens in arena
-                double cal_x = yW/std::tan(ang_rad);
-                if ((std::abs(cal_x) < sizeW/2.0) || almost_equal(std::abs(cal_x), sizeW/2.0))
-                {
-                    pt.x = cal_x;
-                    pt.y = yW;
-                    return true;
-                }
-                
-            }
-
+        //Get cross product
+        Vector2D line{x2-x1, y2-y1}; //p
+        Vector2D wall{xW2-xW1, yW2-yW1}; //q
+        double cross_linewall = cross(line, wall);
+        // A cross product of 0 means the vectors
+        // are either parallel or collinear
+        // This function won't have a collinear case
+        // so a 0 here, means no intersection
+        if (almost_equal(cross_linewall, 0.0))
+        {
             return false;
+        }
 
-        // Processing x-walls
-        } else if (almost_equal(yW, 0.0)) {
-            //Check intersection
-            if (((std::abs(xW) > std::abs(x1)) || almost_equal(xW, x1)) && 
-                ((std::abs(xW) < std::abs(x2)) || almost_equal(xW, x2)))
-            {
-                //Check intersection happens in arena
-                double cal_y = xW*std::tan(ang_rad);
-                if ((std::abs(cal_y) < sizeW/2.0) || almost_equal(std::abs(cal_y), sizeW/2.0))
-                {
-                    pt.x = xW;
-                    pt.y = cal_y;
-                    return true;
-                }
-            }
-
-            return false;
+        Vector2D diff{xW1 - x1, yW1 - y1};
+        double line_scale = cross(diff, wall) / cross_linewall;
+        double wall_scale = cross(diff, line) / cross_linewall;
+        // Check if line_scale and wall_scale are in range [0,1]
+        // if so, intersection! Populate pt p
+        if (((almost_equal(line_scale, 0.0) || line_scale > 0.0) && 
+            (almost_equal(line_scale, 1.0) || line_scale < 1.0)) &&
+            ((almost_equal(wall_scale, 0.0) || wall_scale > 0.0) && 
+            (almost_equal(wall_scale, 1.0) || wall_scale < 1.0)))
+        {
+            pt = line_scale*line + Vector2D{x1, y1};
+            return true;
         }
 
         return false;
