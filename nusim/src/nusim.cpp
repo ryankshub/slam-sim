@@ -11,8 +11,8 @@
 ///     obstacles/obs_y: List of y position for cylinder obstacles (m)
 ///     obstacles/radius: Radius of the cylinder obstacles (m)
 ///     red_space (bool): True if certain params are found in red namespace.
-///     x_length(double): X length of the arena
-///     y_length(double): Y length of the arena
+///     arena_x_length(double): X length of the arena
+///     arena_y_length(double): Y length of the arena
 ///     wheel_radius(double, required): radius of the robot's wheels
 ///     track_width (double, required): distance between the robot's wheels 
 ///     motor_cmd_to_rads(double, required): Conversion rate from ticks/secs to rad/sec  
@@ -34,6 +34,7 @@
 
 //Project include
 #include "turtlelib/diff_drive.hpp"
+#include "turtlelib/laser_utils.hpp"
 //C++ includes
 #include <cmath>
 #include <cstdint>
@@ -73,6 +74,8 @@ static const double DEFAULT_VEL_VARIANCE = 0.0;
 static const double DEFAULT_WHEEL_SLIP = 1.0;
 static const double DEFAULT_OBS_RANGE = 100.0;
 static const double DEFAULT_COLLISION_RADIUS = 0.5;
+static const double DEFAULT_LASER_MIN_ANGLE = 0.0;
+static const double DEFAULT_LASER_MAX_ANGLE = turtlelib::PI*2.0;
 static const double DEFAULT_LASER_MIN_RANGE = 0.120;
 static const double DEFAULT_LASER_MAX_RANGE = 3.5;
 static const double DEFAULT_LASER_RESOLUTION = 0.015;
@@ -90,8 +93,8 @@ static double motor_cmd_to_rads;
 static double collision_radius;
 static turtlelib::DiffDrive diff_drive;
 static nuturtlebot_msgs::SensorData sensor_data;
-static double x_length;
-static double y_length; 
+static double arena_x_length;
+static double arena_y_length; 
 static double vel_mean;
 static double vel_variance;
 static double slip_min;
@@ -99,15 +102,19 @@ static double slip_max;
 static double basic_sensor_variance;
 static double max_range;
 static visualization_msgs::MarkerArray cylinders;
+static visualization_msgs::MarkerArray walls;  
 static bool publish_fake_sensor = false;
 static visualization_msgs::MarkerArray fake_sensor_readings;
 static bool publish_laser_sensor = false;
+static double laser_min_angle;
+static double laser_max_angle;
 static double laser_min_range;
 static double laser_max_range;
 static double laser_resolution;
-static int angle_samples;
+static int laser_angle_samples;
 static double laser_noise_mean;
 static double laser_noise_dev;
+static std::vector<float> laser_ranges;
 
 
 // Nusim Node's functions
@@ -222,8 +229,9 @@ void wheel_cmd_handler(const nuturtlebot_msgs::WheelCommands& msg)
 /// \param TimerEvent - ros TimerEvent required for function, not used.
 void prep_fake_sensor(const ros::TimerEvent&)
 {
-    //Set publish signal high
-    publish_fake_sensor = true;
+    //Set up Transformation for world-robot
+    turtlelib::Transform2D Twr {diff_drive.location(), diff_drive.theta()};
+    turtlelib::Transform2D Trw = Twr.inv();
     //Set up normal distribution
     std::normal_distribution<double> gauss(0.0, basic_sensor_variance);
 
@@ -251,9 +259,8 @@ void prep_fake_sensor(const ros::TimerEvent&)
         reading.color.b = 0;
         reading.color.a = 1.0;
         // Update location of marker, make position relative, and add noise
-        turtlelib::Transform2D Twr {diff_drive.location(), diff_drive.theta()};
         turtlelib::Transform2D Two {turtlelib::Vector2D{cylin.pose.position.x, cylin.pose.position.y}, 0};
-        turtlelib::Transform2D Tro = Twr.inv() * Two;
+        turtlelib::Transform2D Tro = Trw * Two;
         reading.pose.position.x = (Tro.translation().x) + gauss(get_random());
         reading.pose.position.y = (Tro.translation().y) + gauss(get_random());
         double distance = std::sqrt(pow(reading.pose.position.x,2.0) + pow(reading.pose.position.y,2.0));
@@ -267,14 +274,140 @@ void prep_fake_sensor(const ros::TimerEvent&)
         //Update reading
         fake_sensor_readings.markers.at(reading.id) = reading;
     }
+
+    //Set publish signal high
+    publish_fake_sensor = true;
 }
 
 
-/// \brief 
-///
+/// \brief Populates the LaserScan lidar topic with information
+/// about the robot's environment 
 /// \param TimerEvent - ros TimerEvent required for function, not used.
 void prep_laser_sensor(const ros::TimerEvent&)
 {
+
+    //Set Transformation frame for world-robot
+    turtlelib::Transform2D Twr {diff_drive.location(), diff_drive.theta()};
+    turtlelib::Transform2D Trw = Twr.inv();
+    
+    //Set up normal distribution
+    std::normal_distribution<double> gauss(laser_noise_mean, laser_noise_dev);
+
+    // Built empty ranges
+    std::vector<float> range_values;
+    double current_angle = 0.0;
+    double angle_increment = (laser_max_angle - laser_min_angle)/laser_angle_samples;
+    // Loop through lasers
+    for (int i = 0; i < laser_angle_samples; i++) ////LOOP
+    {
+        // Set up collision checkers
+        bool collision = false;
+        turtlelib::Vector2D collision_pt {0.0, 0.0};
+
+        // Get points for laser scanning segment
+        double x_min = laser_min_range*std::cos(current_angle);
+        double y_min = laser_min_range*std::sin(current_angle);
+        double x_max = laser_max_range*std::cos(current_angle);
+        double y_max = laser_max_range*std::sin(current_angle);
+
+        //Check obstacles
+        for (visualization_msgs::Marker cylin: cylinders.markers)
+        {
+            if (collision)
+            {
+                break; //If we found a collision, end loop
+            }
+
+            turtlelib::Vector2D cylin_r = Trw(turtlelib::Vector2D{cylin.pose.position.x, cylin.pose.position.y});
+            collision = turtlelib::check_obs_intersection(x_min, y_min, x_max, y_max,
+                                                            cylin_r.x, cylin_r.y, cylin.scale.x,
+                                                            collision_pt);
+        }
+
+        //Check walls
+        //Check if previous collision
+        if (!collision)
+        {
+            for (visualization_msgs::Marker wall: walls.markers)
+            {
+                if (collision)
+                {
+                    break; //If we found a collision, end loop  
+                } 
+
+                //Check for Front/West Wall
+                if (turtlelib::almost_equal(wall.pose.position.y, 0.0) && wall.pose.position.x > 0)
+                {
+                    turtlelib::Vector2D wall_pt1_r = Trw(turtlelib::Vector2D{arena_x_length/2.0, -arena_y_length/2.0});
+                    turtlelib::Vector2D wall_pt2_r = Trw(turtlelib::Vector2D{arena_x_length/2.0, arena_y_length/2.0});
+                    collision = turtlelib::check_wall_intersection(x_min, y_min, x_max, y_max,
+                                                                    wall_pt1_r.x, wall_pt1_r.y,
+                                                                    wall_pt2_r.x, wall_pt2_r.y,
+                                                                    collision_pt);
+                } 
+                // Check for Back/East Wall
+                else if (turtlelib::almost_equal(wall.pose.position.y, 0.0) && wall.pose.position.x < 0)
+                {
+                    turtlelib::Vector2D wall_pt1_r = Trw(turtlelib::Vector2D{-arena_x_length/2.0, -arena_y_length/2.0});
+                    turtlelib::Vector2D wall_pt2_r = Trw(turtlelib::Vector2D{-arena_x_length/2.0, arena_y_length/2.0});
+                    collision = turtlelib::check_wall_intersection(x_min, y_min, x_max, y_max,
+                                                                    wall_pt1_r.x, wall_pt1_r.y,
+                                                                    wall_pt2_r.x, wall_pt2_r.y,
+                                                                    collision_pt);
+                }
+
+                // Check for Right/North Wall
+                else if (turtlelib::almost_equal(wall.pose.position.x, 0.0) && wall.pose.position.y < 0)
+                {
+                    turtlelib::Vector2D wall_pt1_r = Trw(turtlelib::Vector2D{arena_x_length/2.0, -arena_y_length/2.0});
+                    turtlelib::Vector2D wall_pt2_r = Trw(turtlelib::Vector2D{-arena_x_length/2.0, -arena_y_length/2.0});
+                    collision = turtlelib::check_wall_intersection(x_min, y_min, x_max, y_max,
+                                                                    wall_pt1_r.x, wall_pt1_r.y,
+                                                                    wall_pt2_r.x, wall_pt2_r.y,
+                                                                    collision_pt);
+                }
+
+                // Check for Right/North Wall
+                else if (turtlelib::almost_equal(wall.pose.position.x, 0.0) && wall.pose.position.y > 0)
+                {
+                    turtlelib::Vector2D wall_pt1_r = Trw(turtlelib::Vector2D{arena_x_length/2.0, arena_y_length/2.0});
+                    turtlelib::Vector2D wall_pt2_r = Trw(turtlelib::Vector2D{-arena_x_length/2.0, arena_y_length/2.0});
+                    collision = turtlelib::check_wall_intersection(x_min, y_min, x_max, y_max,
+                                                                    wall_pt1_r.x, wall_pt1_r.y,
+                                                                    wall_pt2_r.x, wall_pt2_r.y,
+                                                                    collision_pt);
+                }   
+            }
+        }
+
+        //Get range within laser resolution
+        double range_value = turtlelib::magnitude(collision_pt);
+        range_value += laser_resolution/2.0;
+        range_value -= std::fmod(range_value, laser_resolution);
+        
+        // Apply noise
+        range_value += gauss(get_random()); 
+        
+        //Cap range within min and max value
+        if (range_value > laser_max_range) 
+        { 
+            range_value = laser_max_range;
+        }
+        else if (range_value < laser_min_range) 
+        { 
+            range_value = laser_min_range;
+        }
+
+        //append it
+        range_values.push_back(range_value);
+
+        //Update angle
+        current_angle = turtlelib::normalize_angle(current_angle + angle_increment);
+    }
+
+    //Update ranges
+    laser_ranges = range_values;
+    // Set pubish flag to true
     publish_laser_sensor = true;
 }
 
@@ -322,21 +455,23 @@ int main(int argc, char *argv[])
     //Namespace params
     nh.param("red_space", red_space, DEFAULT_SIM_SPACE);
     //Laser sensor params
+    nh.param("laser/min_angle", laser_min_angle, DEFAULT_LASER_MIN_ANGLE);
+    nh.param("laser/max_angle", laser_max_angle, DEFAULT_LASER_MAX_ANGLE);
     nh.param("laser/min_range", laser_min_range, DEFAULT_LASER_MIN_RANGE);
     nh.param("laser/max_range", laser_max_range, DEFAULT_LASER_MAX_RANGE);
     nh.param("laser/resolution_range", laser_resolution, DEFAULT_LASER_RESOLUTION);
-    nh.param("laser/angle_samples", angle_samples, DEFAULT_ANGLE_SAMPLES);
+    nh.param("laser/angle_samples", laser_angle_samples, DEFAULT_ANGLE_SAMPLES);
     nh.param("laser/noise_mean", laser_noise_mean, DEFAULT_LASER_NOISE_MEAN);
     nh.param("laser/noise_dev", laser_noise_dev, DEFAULT_LASER_NOISE_DEV);
 
     //Get Arena Param
-    if(!nh.getParam("arena/x_length", x_length))
+    if(!nh.getParam("arena/x_length", arena_x_length))
     {
         ROS_ERROR_STREAM("Nusim: Cannot find x_length for arena");
         return(1);
     }
 
-    if(!nh.getParam("arena/y_length", y_length))
+    if(!nh.getParam("arena/y_length", arena_y_length))
     {
         ROS_ERROR_STREAM("Nusim: Cannot find y_length for arena");
         return(1);
@@ -394,7 +529,7 @@ int main(int argc, char *argv[])
     const auto encoder_pub = pub_nh.advertise<nuturtlebot_msgs::SensorData>("red/sensor_data", QUEUE_SIZE);
     const auto cylinder_pub = nh.advertise<visualization_msgs::MarkerArray>("obstacles", QUEUE_SIZE, true);
     const auto walls_pub = nh.advertise<visualization_msgs::MarkerArray>("walls", QUEUE_SIZE, true);
-    const auto laser_pub = nh.advertise<sensor_msgs::LaserScan>("lidar", 100, true);
+    const auto laser_pub = pub_nh.advertise<sensor_msgs::LaserScan>("lidar", 100, true);
     const auto wheel_cmd_sub = pub_nh.subscribe("red/wheel_cmd", QUEUE_SIZE, wheel_cmd_handler);
     const auto reset_srv = nh.advertiseService("reset", reset);
     const auto teleport_srv = nh.advertiseService("teleport", teleport);
@@ -446,9 +581,8 @@ int main(int argc, char *argv[])
     const auto fake_sensor_pub = pub_nh.advertise<visualization_msgs::MarkerArray>("fake_sensor", 100, true); 
     const auto fake_sensor_time = nh.createTimer(ros::Duration(0.2), prep_fake_sensor);
 
-    //Publish Wall Markers
-    visualization_msgs::MarkerArray walls;        
-    //Front Wall
+    //Publish Wall Markers      
+    //Front Wall (West Wall)
     visualization_msgs::Marker front_wall;
     front_wall.header.stamp = ros::Time::now();
     front_wall.header.frame_id = "world";
@@ -456,7 +590,7 @@ int main(int argc, char *argv[])
     front_wall.id = 0;
     front_wall.type = visualization_msgs::Marker::CUBE;
     front_wall.action = visualization_msgs::Marker::ADD;
-    front_wall.pose.position.x = x_length/2.0 + WALL_THICKNESS/2.0;
+    front_wall.pose.position.x = arena_x_length/2.0 + WALL_THICKNESS/2.0;
     front_wall.pose.position.y = 0;
     front_wall.pose.position.z = WALL_HEIGHT/2.0;
     front_wall.pose.orientation.x = 0.0;
@@ -464,7 +598,7 @@ int main(int argc, char *argv[])
     front_wall.pose.orientation.z = 0.0;
     front_wall.pose.orientation.w = 1.0;
     front_wall.scale.x = WALL_THICKNESS;
-    front_wall.scale.y = y_length + 2.0*WALL_THICKNESS;
+    front_wall.scale.y = arena_y_length + 2.0*WALL_THICKNESS;
     front_wall.scale.z = WALL_HEIGHT;
     front_wall.color.r = 1.0;
     front_wall.color.g = 0.0;
@@ -472,7 +606,7 @@ int main(int argc, char *argv[])
     front_wall.color.a = 1.0;
     walls.markers.push_back(front_wall);
 
-    //Back Wall
+    //Back Wall (East Wall)
     visualization_msgs::Marker back_wall;
     back_wall.header.stamp = ros::Time::now();
     back_wall.header.frame_id = "world";
@@ -480,7 +614,7 @@ int main(int argc, char *argv[])
     back_wall.id = 1;
     back_wall.type = visualization_msgs::Marker::CUBE;
     back_wall.action = visualization_msgs::Marker::ADD;
-    back_wall.pose.position.x = -x_length/2.0 - WALL_THICKNESS/2.0;
+    back_wall.pose.position.x = -arena_x_length/2.0 - WALL_THICKNESS/2.0;
     back_wall.pose.position.y = 0;
     back_wall.pose.position.z = WALL_HEIGHT/2.0;
     back_wall.pose.orientation.x = 0.0;
@@ -488,7 +622,7 @@ int main(int argc, char *argv[])
     back_wall.pose.orientation.z = 0.0;
     back_wall.pose.orientation.w = 1.0;
     back_wall.scale.x = WALL_THICKNESS;
-    back_wall.scale.y = y_length + 2.0*WALL_THICKNESS;
+    back_wall.scale.y = arena_y_length + 2.0*WALL_THICKNESS;
     back_wall.scale.z = WALL_HEIGHT;
     back_wall.color.r = 1.0;
     back_wall.color.g = 0.0;
@@ -496,46 +630,22 @@ int main(int argc, char *argv[])
     back_wall.color.a = 1.0;
     walls.markers.push_back(back_wall);
 
-    //Left Wall
-    visualization_msgs::Marker left_wall;
-    left_wall.header.stamp = ros::Time::now();
-    left_wall.header.frame_id = "world";
-    left_wall.ns = "walls";
-    left_wall.id = 2;
-    left_wall.type = visualization_msgs::Marker::CUBE;
-    left_wall.action = visualization_msgs::Marker::ADD;
-    left_wall.pose.position.x = 0;
-    left_wall.pose.position.y = -y_length/2.0 - WALL_THICKNESS/2.0;
-    left_wall.pose.position.z = WALL_HEIGHT/2.0;
-    left_wall.pose.orientation.x = 0.0;
-    left_wall.pose.orientation.y = 0.0;
-    left_wall.pose.orientation.z = 0.0;
-    left_wall.pose.orientation.w = 1.0;
-    left_wall.scale.x = x_length + 2.0*WALL_THICKNESS;
-    left_wall.scale.y = WALL_THICKNESS;
-    left_wall.scale.z = WALL_HEIGHT;
-    left_wall.color.r = 1.0;
-    left_wall.color.g = 0.0;
-    left_wall.color.b = 0.0;
-    left_wall.color.a = 1.0;
-    walls.markers.push_back(left_wall);
-
-    //Right Wall
+    //Right Wall (North Wall)
     visualization_msgs::Marker right_wall;
     right_wall.header.stamp = ros::Time::now();
     right_wall.header.frame_id = "world";
     right_wall.ns = "walls";
-    right_wall.id = 3;
+    right_wall.id = 2;
     right_wall.type = visualization_msgs::Marker::CUBE;
     right_wall.action = visualization_msgs::Marker::ADD;
     right_wall.pose.position.x = 0;
-    right_wall.pose.position.y = y_length/2.0 + WALL_THICKNESS/2.0;
+    right_wall.pose.position.y = -arena_y_length/2.0 - WALL_THICKNESS/2.0;
     right_wall.pose.position.z = WALL_HEIGHT/2.0;
     right_wall.pose.orientation.x = 0.0;
     right_wall.pose.orientation.y = 0.0;
     right_wall.pose.orientation.z = 0.0;
     right_wall.pose.orientation.w = 1.0;
-    right_wall.scale.x = x_length + 2.0*WALL_THICKNESS;
+    right_wall.scale.x = arena_x_length + 2.0*WALL_THICKNESS;
     right_wall.scale.y = WALL_THICKNESS;
     right_wall.scale.z = WALL_HEIGHT;
     right_wall.color.r = 1.0;
@@ -544,8 +654,44 @@ int main(int argc, char *argv[])
     right_wall.color.a = 1.0;
     walls.markers.push_back(right_wall);
 
+    //Left Wall (South Wall)
+    visualization_msgs::Marker left_wall;
+    left_wall.header.stamp = ros::Time::now();
+    left_wall.header.frame_id = "world";
+    left_wall.ns = "walls";
+    left_wall.id = 3;
+    left_wall.type = visualization_msgs::Marker::CUBE;
+    left_wall.action = visualization_msgs::Marker::ADD;
+    left_wall.pose.position.x = 0;
+    left_wall.pose.position.y = arena_y_length/2.0 + WALL_THICKNESS/2.0;
+    left_wall.pose.position.z = WALL_HEIGHT/2.0;
+    left_wall.pose.orientation.x = 0.0;
+    left_wall.pose.orientation.y = 0.0;
+    left_wall.pose.orientation.z = 0.0;
+    left_wall.pose.orientation.w = 1.0;
+    left_wall.scale.x = arena_x_length + 2.0*WALL_THICKNESS;
+    left_wall.scale.y = WALL_THICKNESS;
+    left_wall.scale.z = WALL_HEIGHT;
+    left_wall.color.r = 1.0;
+    left_wall.color.g = 0.0;
+    left_wall.color.b = 0.0;
+    left_wall.color.a = 1.0;
+    walls.markers.push_back(left_wall);
+
     //Pub Walls
     walls_pub.publish(walls);
+
+    //Init Laser Scanner
+    sensor_msgs::LaserScan laserscan;
+    laserscan.header.frame_id = "red-base_footprint";
+    laserscan.angle_min = laser_min_angle;
+    laserscan.angle_max = laser_max_angle;
+    laserscan.angle_increment = (laser_max_angle - laser_min_angle)/laser_angle_samples;
+    laserscan.scan_time = 0.2;
+    laserscan.time_increment = laserscan.scan_time/laser_angle_samples;
+    laserscan.range_min = laser_min_range;
+    laserscan.range_max = laser_max_range;
+    
 
     //Main loop
     while(ros::ok())
@@ -582,6 +728,14 @@ int main(int argc, char *argv[])
             fake_sensor_pub.publish(fake_sensor_readings);
         }
 
+        // LIDAR publishing
+        if (publish_laser_sensor)
+        {
+            publish_laser_sensor = false;
+            laserscan.header.stamp = ros::Time::now();
+            laserscan.ranges = laser_ranges;
+            
+        }
         //Grab data
         ros::spinOnce();
 
