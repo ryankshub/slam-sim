@@ -56,6 +56,14 @@ namespace turtlelib {
             pt.y = first_y + y0;
         }
 
+        //Check new point is on line segment
+        if (!((x1 <= pt.x) && (pt.x <= x2)) && !((x1 >= pt.x) && (pt.x >= x2)))
+        {
+            pt.x = 0.0;
+            pt.y = 0.0;
+            return false;
+        }
+
         return true;
     }
 

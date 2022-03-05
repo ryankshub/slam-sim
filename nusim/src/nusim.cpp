@@ -39,6 +39,7 @@
 #include <cmath>
 #include <cstdint>
 #include <random>
+#include <limits>
 #include <vector>
 //3rd-party includes
 #include "geometry_msgs/TransformStamped.h"
@@ -317,15 +318,15 @@ void prep_laser_sensor(const ros::TimerEvent&)
             {
                 break; //If we found a collision, end loop
             }
-
             turtlelib::Vector2D cylin_r = Trw(turtlelib::Vector2D{cylin.pose.position.x, cylin.pose.position.y});
             collision = turtlelib::check_obs_intersection(x_min, y_min, x_max, y_max,
                                                             cylin_r.x, cylin_r.y, cylin.scale.x,
                                                             collision_pt);
+            
         }
 
-        //Check walls
-        //Check if previous collision
+        // Check walls
+        // Check if previous collision
         if (!collision)
         {
             for (visualization_msgs::Marker wall: walls.markers)
@@ -382,20 +383,25 @@ void prep_laser_sensor(const ros::TimerEvent&)
 
         //Get range within laser resolution
         double range_value = turtlelib::magnitude(collision_pt);
-        range_value += laser_resolution/2.0;
-        range_value -= std::fmod(range_value, laser_resolution);
-        
-        // Apply noise
-        range_value += gauss(get_random()); 
-        
-        //Cap range within min and max value
-        if (range_value > laser_max_range) 
-        { 
-            range_value = laser_max_range;
-        }
-        else if (range_value < laser_min_range) 
-        { 
-            range_value = laser_min_range;
+        if (!turtlelib::almost_equal(range_value, 0.0))
+        {
+            range_value += laser_resolution/2.0;
+            range_value -= std::fmod(range_value, laser_resolution);
+            
+            // Apply noise
+            range_value += gauss(get_random()); 
+            
+            //Cap range within min and max value
+            if (range_value > laser_max_range) 
+            { 
+                range_value = laser_max_range;
+            }
+            else if (range_value < laser_min_range) 
+            { 
+                range_value = laser_min_range;
+            }
+        } else {
+            range_value = std::numeric_limits<sensor_msgs::LaserScan::_range_max_type>::infinity();
         }
 
         //append it
@@ -687,8 +693,8 @@ int main(int argc, char *argv[])
     laserscan.angle_min = laser_min_angle;
     laserscan.angle_max = laser_max_angle;
     laserscan.angle_increment = (laser_max_angle - laser_min_angle)/laser_angle_samples;
-    laserscan.scan_time = 0.2;
-    laserscan.time_increment = laserscan.scan_time/laser_angle_samples;
+    laserscan.time_increment = 1.73e-5;
+    laserscan.scan_time = laserscan.time_increment * laser_angle_samples;
     laserscan.range_min = laser_min_range;
     laserscan.range_max = laser_max_range;
     
@@ -734,7 +740,7 @@ int main(int argc, char *argv[])
             publish_laser_sensor = false;
             laserscan.header.stamp = ros::Time::now();
             laserscan.ranges = laser_ranges;
-            
+            laser_pub.publish(laserscan);     
         }
         //Grab data
         ros::spinOnce();
