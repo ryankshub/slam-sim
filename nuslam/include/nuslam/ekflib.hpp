@@ -79,17 +79,32 @@ namespace EKF_DD
         void set_current_pose(double theta, turtlelib::Vector2D pt);
 
         /// \brief Return the robot's pose
+        /// \return A column vector of (theta, x, y) of the robot
         arma::colvec get_current_pose() const;
 
         /// \brief Return the landmark's position
+        /// \return A column vector (mx1, my1, .... mxn, myn)
         arma::colvec get_current_landmarks() const;
 
         /// \brief Return the state vector
+        /// \return A combination of robot pose and landmarks
         arma::colvec get_current_state() const;
+
+        /// \brief Update the pose vector for prediction
+        /// \param odom_twist - input body twist of the robot
+        arma::colvec predict_pose_vec(turtlelib::Twist2D odom_twist) const;
+
+        /// \brief Update the convances for prediction
+        /// \param odom_twist - input body twist of the robot
+        arma::mat predict_pose_cov(turtlelib::Twist2D odom_twist) const;
+
 
     private:
         const double DEFAULT_LANDMARK_POS_X = 3.0;
         const double DEFAULT_LANDMARK_POS_Y = 3.0;
+        const int POSE_THETA_IDX = 0;
+        const int POSE_X_IDX = 0;
+        const int POSE_Y_IDX = 0;
         arma::colvec mPose_vec;
         arma::mat mPose_cov;
         int mNum_landmarks;
