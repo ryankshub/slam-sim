@@ -40,6 +40,14 @@ namespace EKF_DD
         /// \param y - initial y position of the robot
         EKF(double theta, double x, double y);
 
+        /// \brief Create an EKF with no landmarks and given robot pose 
+        /// w/ noise covariance
+        /// \param theta - initial orientation of the robot
+        /// \param x - initial x position of the robot
+        /// \param y - initial y position of the robot
+        /// \param Q - noise convariance on robot's motion model
+        EKF(double theta, double x, double y, const arma::mat & Q);
+
         /// \brief Create an EKF with initial number of landmarks at 3,3 and given
         /// robot pose
         /// \param num_landmarks - Initial number of landmarks
@@ -47,6 +55,15 @@ namespace EKF_DD
         /// \param x - initial x position of the robot
         /// \param y - initial y position of the robot
         EKF(int num_landmarks, double theta, double x, double y);
+
+        /// \brief Create an EKF with initial number of landmarks at 3,3 and given
+        /// robot pose
+        /// \param num_landmarks - Initial number of landmarks
+        /// \param theta - initial orientation of the robot
+        /// \param x - initial x position of the robot
+        /// \param y - initial y position of the robot
+        /// \param Q - noise convariance on robot's motion model
+        EKF(int num_landmarks, double theta, double x, double y, const arma::mat & Q);
 
         /// \brief Create an EKF with list of landmarks positions and given
         /// robot pose
@@ -57,14 +74,25 @@ namespace EKF_DD
         EKF(const std::vector<std::tuple<double, double>> & landmarks_pts, 
             double theta, double x, double y);
 
+        /// \brief Create an EKF with list of landmarks positions and given
+        /// robot pose
+        /// \param landmarks_pts - list of landmark locations
+        /// \param theta - initial orientation of the robot
+        /// \param x - initial x position of the robot
+        /// \param y - initial y position of the robot
+        /// \param Q - noise convariance on robot's motion model
+        EKF(const std::vector<std::tuple<double, double>> & landmarks_pts, 
+            double theta, double x, double y, const arma::mat & Q);
+
         /// \brief Create an EKF with number of landmarks, list of landmarks positions, 
         /// and given robot pose
         /// \param landmarks_pts - list of landmark locations
         /// \param theta - initial orientation of the robot
         /// \param x - initial x position of the robot
         /// \param y - initial y position of the robot
+        /// \param Q - noise convariance on robot's motion model
         EKF(int num_landmarks, const std::vector<std::tuple<double, double>> & landmarks_pts, 
-            double theta, double x, double y);
+            double theta, double x, double y, const arma::mat & Q);
 
         /// \brief Set the robot's pose
         /// \param theta - orientation of the robot
@@ -107,6 +135,7 @@ namespace EKF_DD
         const int POSE_Y_IDX = 0;
         arma::colvec mPose_vec;
         arma::mat mPose_cov;
+        arma::mat mQ_cov;
         int mNum_landmarks;
         arma::colvec mLandmark_vec;
         arma::mat mLandmark_cov;

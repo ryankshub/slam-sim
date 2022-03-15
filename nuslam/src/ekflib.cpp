@@ -5,46 +5,70 @@ namespace EKF_DD
 {
     //Empty EKF
     EKF::EKF()
-        : EKF{0, std::vector<std::tuple<double,double>>{}, 0.0, 0.0, 0.0}
+        : EKF{0, std::vector<std::tuple<double,double>>{}, 0.0, 0.0, 0.0, arma::mat(3,3,arma::fill::eye)}
     {
     }
 
     //EKF with number of landmarks
     EKF::EKF(int num_landmarks)
-        : EKF{num_landmarks, std::vector<std::tuple<double, double>>{}, 0.0, 0.0, 0.0}
+        : EKF{num_landmarks, std::vector<std::tuple<double, double>>{}, 
+            0.0, 0.0, 0.0, arma::mat(3,3,arma::fill::eye)}
     {
     }
 
     //EKF with landmark points
     EKF::EKF(const std::vector<std::tuple<double, double>> & landmarks_pts)
-        : EKF{static_cast<int>(landmarks_pts.size()), landmarks_pts, 0.0, 0.0, 0.0}
+        : EKF{static_cast<int>(landmarks_pts.size()), landmarks_pts, 0.0, 0.0, 0.0, arma::mat(3,3,arma::fill::eye)}
     {
     }
 
     //EKF with robot pose
     EKF::EKF(double theta, double x, double y)
-        : EKF{0, std::vector<std::tuple<double, double>>{}, theta, x, y}
+        : EKF{0, std::vector<std::tuple<double, double>>{}, theta, x, y, arma::mat(3,3,arma::fill::eye)}
+    {      
+    }
+
+    //EKF with robot pose w/ Q custom option
+    EKF::EKF(double theta, double x, double y, const arma::mat & Q)
+        : EKF{0, std::vector<std::tuple<double, double>>{}, theta, x, y, Q}
     {      
     }
 
     //EKF with num landmarks and robot pose
     EKF::EKF(int num_landmarks, double theta, double x, double y)
-        : EKF{static_cast<int>(num_landmarks), std::vector<std::tuple<double, double>>{}, theta, x, y}
+        : EKF{static_cast<int>(num_landmarks), std::vector<std::tuple<double, double>>{},
+             theta, x, y, arma::mat(3,3,arma::fill::eye)}
+    {
+    }
+
+    //EKF with num landmarks and robot pose w/ Q custom option
+    EKF::EKF(int num_landmarks, double theta, double x, double y, const arma::mat & Q)
+        : EKF{static_cast<int>(num_landmarks), std::vector<std::tuple<double, double>>{}, 
+            theta, x, y, Q}
     {
     }
 
     //EKF with landmarks_pt and robot pose
     EKF::EKF(const std::vector<std::tuple<double, double>> & landmarks_pts,
             double theta, double x, double y)
-        : EKF{static_cast<int>(landmarks_pts.size()), landmarks_pts, theta, x, y}
+        : EKF{static_cast<int>(landmarks_pts.size()), landmarks_pts, 
+            theta, x, y, arma::mat(3,3,arma::fill::eye)}
+    {
+    }
+
+    //EKF with landmarks_pt and robot pose w/ Q option
+    EKF::EKF(const std::vector<std::tuple<double, double>> & landmarks_pts,
+            double theta, double x, double y, const arma::mat & Q)
+        : EKF{static_cast<int>(landmarks_pts.size()), landmarks_pts, theta, x, y, Q}
     {
     }
 
     //EKF with num_landmarks, landmarks_pt, and robot pose
     EKF::EKF(int num_landmarks, const std::vector<std::tuple<double, double>> & landmarks_pts,
-            double theta, double x, double y)
+            double theta, double x, double y, const arma::mat & Q)
         : mPose_vec{turtlelib::normalize_angle(theta), x, y}
         , mPose_cov(3, 3, arma::fill::zeros)
+        , mQ_cov{Q}
         , mNum_landmarks{num_landmarks}
     {
         std::vector<double> landmarks_flat;
@@ -139,6 +163,6 @@ namespace EKF_DD
             A = temp + arma::mat(3, 3, arma::fill::eye);
         }
 
-        return A*mPose_vec*A.t(); //+ Q TODO
+        return A*mPose_vec*A.t() + mQ_cov;
     }
 }
