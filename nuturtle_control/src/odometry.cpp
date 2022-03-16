@@ -44,7 +44,10 @@
 
 //3rd-party includes
 #include "geometry_msgs/TransformStamped.h"
+#include "geometry_msgs/Pose.h"
+#include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Odometry.h"
+#include "nav_msgs/Path.h"
 #include "nuturtle_control/PoseConfig.h"
 #include "ros/ros.h"
 #include "ros/console.h"
@@ -161,6 +164,7 @@ int main(int argc, char *argv[])
     //ROS Objects
     const auto state_sub = nh.subscribe("joint_states", QUEUE_SIZE, state_handler);
     const auto odom_pub = nh.advertise<nav_msgs::Odometry>("odom", QUEUE_SIZE);
+    const auto path_pub = nh.advertise<nav_msgs::Path>("odom_path",QUEUE_SIZE, true);
     const auto pose_srv = nh.advertiseService("set_pose", pose_service);
     geometry_msgs::TransformStamped Tob;
 
@@ -179,6 +183,14 @@ int main(int argc, char *argv[])
     //Setup Transform
     Tob.header.frame_id = odom_id;
     Tob.child_frame_id = body_id;
+
+    // Init Odom path
+    nav_msgs::Path odom_path;
+    odom_path.header.frame_id = "odom";
+    double past_x = Dodom.location().x;
+    double past_y = Dodom.location().y;
+    double past_theta = Dodom.theta();
+
     //Main Loop
     while(ros::ok())
     {
@@ -215,6 +227,34 @@ int main(int argc, char *argv[])
         nav_odom.twist.twist.angular.z = body_twist.theta_dot;
 
         odom_pub.publish(nav_odom);
+
+        // Odom path publishing
+        if(!turtlelib::almost_equal(past_x, Dodom.location().x) ||
+            !turtlelib::almost_equal(past_y, Dodom.location().y) ||
+            !turtlelib::almost_equal(past_theta, Dodom.theta()))
+        {
+            //Update past reference pts
+            past_x = Dodom.location().x;
+            past_y = Dodom.location().y;
+            //Create new pose
+            geometry_msgs::Pose new_pose{};
+            new_pose.position.x = Dodom.location().x;
+            new_pose.position.y = Dodom.location().y;
+            tf2::Quaternion qp;
+            qp.setRPY(0, 0, Dodom.theta());
+            new_pose.orientation.x = qp.x();
+            new_pose.orientation.y = qp.y();
+            new_pose.orientation.z = qp.z();
+            new_pose.orientation.w = qp.w();
+            
+            //Create new pose stamped
+            geometry_msgs::PoseStamped new_pose_stamped{};
+            new_pose_stamped.pose = new_pose;
+            odom_path.header.stamp = ros::Time::now();
+            new_pose_stamped.header = odom_path.header;
+            odom_path.poses.push_back(new_pose_stamped);
+            path_pub.publish(odom_path);
+        }
 
         //Sleep
         loop_rate.sleep();
