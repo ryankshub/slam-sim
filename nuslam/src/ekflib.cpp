@@ -5,101 +5,38 @@ namespace EKF_DD
 {
     //Empty EKF
     EKF::EKF()
-        : EKF{0, std::vector<std::tuple<double,double>>{}, 0.0, 0.0, 0.0, arma::mat(3,3,arma::fill::eye)}
-    {
-    }
-
-    //EKF with number of landmarks
-    EKF::EKF(int num_landmarks)
-        : EKF{num_landmarks, std::vector<std::tuple<double, double>>{}, 
-            0.0, 0.0, 0.0, arma::mat(3,3,arma::fill::eye)}
-    {
-    }
-
-    //EKF with landmark points
-    EKF::EKF(const std::vector<std::tuple<double, double>> & landmarks_pts)
-        : EKF{static_cast<int>(landmarks_pts.size()), landmarks_pts, 0.0, 0.0, 0.0, arma::mat(3,3,arma::fill::eye)}
+        : EKF{0.0, 0.0, 0.0, arma::mat(3,3,arma::fill::eye), arma::mat(2,2, arma::fill::ones)}
     {
     }
 
     //EKF with robot pose
     EKF::EKF(double theta, double x, double y)
-        : EKF{0, std::vector<std::tuple<double, double>>{}, theta, x, y, arma::mat(3,3,arma::fill::eye)}
+        : EKF{theta, x, y, arma::mat(3,3,arma::fill::eye), arma::mat(2,2,arma::fill::ones)}
     {      
     }
 
-    //EKF with robot pose w/ Q custom option
-    EKF::EKF(double theta, double x, double y, const arma::mat & Q)
-        : EKF{0, std::vector<std::tuple<double, double>>{}, theta, x, y, Q}
-    {      
-    }
-
-    //EKF with num landmarks and robot pose
-    EKF::EKF(int num_landmarks, double theta, double x, double y)
-        : EKF{static_cast<int>(num_landmarks), std::vector<std::tuple<double, double>>{},
-             theta, x, y, arma::mat(3,3,arma::fill::eye)}
-    {
-    }
-
-    //EKF with num landmarks and robot pose w/ Q custom option
-    EKF::EKF(int num_landmarks, double theta, double x, double y, const arma::mat & Q)
-        : EKF{static_cast<int>(num_landmarks), std::vector<std::tuple<double, double>>{}, 
-            theta, x, y, Q}
-    {
-    }
-
-    //EKF with landmarks_pt and robot pose
-    EKF::EKF(const std::vector<std::tuple<double, double>> & landmarks_pts,
-            double theta, double x, double y)
-        : EKF{static_cast<int>(landmarks_pts.size()), landmarks_pts, 
-            theta, x, y, arma::mat(3,3,arma::fill::eye)}
-    {
-    }
-
-    //EKF with landmarks_pt and robot pose w/ Q option
-    EKF::EKF(const std::vector<std::tuple<double, double>> & landmarks_pts,
-            double theta, double x, double y, const arma::mat & Q)
-        : EKF{static_cast<int>(landmarks_pts.size()), landmarks_pts, theta, x, y, Q}
-    {
-    }
-
-    //EKF with num_landmarks, landmarks_pt, and robot pose
-    EKF::EKF(int num_landmarks, const std::vector<std::tuple<double, double>> & landmarks_pts,
-            double theta, double x, double y, const arma::mat & Q)
+    //EKF with robot pose w/ Q and Rcustom option
+    EKF::EKF(double theta, double x, double y, const arma::mat & Q, const arma::mat & R)
         : mPose_vec{turtlelib::normalize_angle(theta), x, y}
         , mPose_cov(3, 3, arma::fill::zeros)
         , mQ_cov{Q}
-        , mNum_landmarks{num_landmarks}
-    {
-        std::vector<double> landmarks_flat;
-        if (landmarks_pts.empty() || static_cast<int>(landmarks_pts.size()) != num_landmarks)
-        {
-            for(int i = 0; i < num_landmarks; i++)
-            {
-                landmarks_flat.push_back(DEFAULT_LANDMARK_POS_X); //Yo, maybe these 
-                landmarks_flat.push_back(DEFAULT_LANDMARK_POS_Y); //should be randomized
-            }
-        } else {
-            for (std::tuple pt : landmarks_pts){
-                landmarks_flat.push_back(std::get<0>(pt));
-                landmarks_flat.push_back(std::get<1>(pt));
-            }
-        }
-        mLandmark_vec = arma::colvec(landmarks_flat);
-        mLandmark_cov = arma::mat(2*num_landmarks, 2*num_landmarks, arma::fill::eye)*std::numeric_limits<double>::max();
+        , mR_cov{R}
+        , mLandmark_pose_map{std::map<int, std::tuple<double, double>>{}}
+        , mLandmark_cov_map{std::map<int, std::tuple<double, double, double, double>>{}}
+    {      
     }
 
     //Set current pose with 3 elem point
     void EKF::set_current_pose(double theta, double x, double y)
     {
-        mPose_vec = arma::colvec{std::vector{turtlelib::normalize_angle(theta), x, y}};
+        mPose_vec = arma::colvec{turtlelib::normalize_angle(theta), x, y};
         mPose_cov = arma::mat(3, 3, arma::fill::zeros);
     }
 
     //Sef current pose with angle and vector
     void EKF::set_current_pose(double theta, turtlelib::Vector2D pt)
     {
-        mPose_vec = arma::colvec(std::vector{turtlelib::normalize_angle(theta), pt.x, pt.y});
+        mPose_vec = arma::colvec{turtlelib::normalize_angle(theta), pt.x, pt.y};
         mPose_cov = arma::mat(3, 3, arma::fill::zeros);
     }
 
@@ -110,14 +47,19 @@ namespace EKF_DD
         return mPose_vec;
     }
 
-    arma::colvec EKF::get_current_landmarks() const
+    std::map<int, std::tuple<double, double>> EKF::get_current_landmarks() const
     {
-        return mLandmark_vec;
+        return mLandmark_pose_map;
     }
 
-    arma::colvec EKF::get_current_state() const
+    arma::colvec EKF::build_state_vector(int id) const
     {
-        return arma::join_cols(mPose_cov, mLandmark_vec);
+        std::tuple<double, double> landmark_pt = mLandmark_pose_map.at(id);
+        double mx = std::get<0>(landmark_pt); //0 is LANDMARK X IDX
+        double my = std::get<1>(landmark_pt); //1 is LANDMARK Y IDX
+        arma::colvec landcol{mx, my};
+        arma::colvec statevec = arma::join_cols(mPose_vec, landcol);
+        return statevec;
     }
 
     // Prediciton Functions
@@ -147,12 +89,14 @@ namespace EKF_DD
     {
         arma::mat A;
         arma::colvec zero_col(3, arma::fill::zeros);
+
         if(turtlelib::almost_equal(odom_twist.theta_dot, 0.0)){
             double x_delta = -odom_twist.x_dot*std::sin(mPose_vec(POSE_THETA_IDX));
             double y_delta = odom_twist.x_dot*std::cos(mPose_vec(POSE_THETA_IDX));
             arma::colvec delta{0.0, x_delta, y_delta};
             arma::mat temp = join_rows(delta, zero_col, zero_col);
             A = temp + arma::mat(3, 3, arma::fill::eye);
+
         } else {
             double x_delta1 = -(odom_twist.x_dot/odom_twist.theta_dot)*std::cos(mPose_vec(POSE_THETA_IDX));
             double x_delta2 = (odom_twist.x_dot/odom_twist.theta_dot)*std::cos(mPose_vec(POSE_THETA_IDX) + odom_twist.theta_dot);
@@ -163,6 +107,113 @@ namespace EKF_DD
             A = temp + arma::mat(3, 3, arma::fill::eye);
         }
 
-        return A*mPose_vec*A.t() + mQ_cov;
+        return A*mPose_cov*A.t() + mQ_cov;
     }
+
+    // Initiate Landmark
+    void EKF::initiate_landmark(int id, double range, double bearing, arma::colvec predict_state)
+    {
+        double mx = predict_state(POSE_X_IDX) + range*std::cos(bearing + predict_state(POSE_THETA_IDX));
+        double my = predict_state(POSE_Y_IDX) + range*std::sin(bearing + predict_state(POSE_THETA_IDX));
+
+        std::tuple<double, double> landmark_pt = std::make_tuple(mx, my);
+        mLandmark_pose_map[id] = landmark_pt;
+        std::tuple<double, double, double, double> landmark_cov = std::make_tuple(0.5, 0.0, 0.0, 0.5);
+        mLandmark_cov_map[id] = landmark_cov;
+    }
+
+    // Compute Est 
+    arma::colvec EKF::compute_est_measurement(int id, arma::colvec predict_state) const
+    {
+        std::tuple<double, double> landmark_pt = mLandmark_pose_map.at(id);
+        double mx = std::get<0>(landmark_pt); //0 is LANDMARK X IDX
+        double my = std::get<1>(landmark_pt); //1 is LANDMARK Y IDX
+        double x_comp = mx - predict_state(POSE_X_IDX);
+        double y_comp = my - predict_state(POSE_Y_IDX);
+        double est_range = std::sqrt(std::pow(x_comp, 2.0) + std::pow(y_comp, 2.0));
+        double est_bearing = std::atan2(y_comp, x_comp) - predict_state(POSE_THETA_IDX);
+        arma::colvec est_meas{est_range, est_bearing};
+        return est_meas;
+    }
+
+    // Build Matrix
+    arma::mat EKF::build_sigma_mat(int id) const
+    {
+        arma::colvec three_zero_col(3, arma::fill::zeros);
+        arma::colvec two_zero_col(2, arma::fill::zeros);
+        arma::mat top_sigma = arma::join_rows(mPose_cov, three_zero_col, three_zero_col);
+        std::tuple<double, double, double, double> landmark_cov = mLandmark_cov_map.at(id);
+        arma::mat mat_cov{{std::get<0>(landmark_cov), std::get<1>(landmark_cov)}, {std::get<2>(landmark_cov), std::get<3>(landmark_cov)}};
+        arma::mat bottom_sigma = arma::join_rows(two_zero_col, two_zero_col, two_zero_col,mat_cov);
+        arma::mat sigma_mat = arma::join_cols(top_sigma, bottom_sigma);
+        return sigma_mat;
+    }
+
+    arma::mat EKF::build_H_mat(int id, arma::colvec predict_state) const
+    {
+        std::tuple<double, double> landmark_pt = mLandmark_pose_map.at(id);
+        double mx = std::get<0>(landmark_pt);//0 is LANDMARK X IDX
+        double my = std::get<1>(landmark_pt);//1 is LANDMARK Y IDX
+        double x_comp = mx - predict_state(POSE_X_IDX);
+        double y_comp = my - predict_state(POSE_Y_IDX);
+        double d = std::pow(x_comp, 2.0) + std::pow(y_comp, 2.0);
+        double sqrt_d = std::sqrt(d);
+
+        arma::colvec top_H_mat {0, -x_comp/sqrt_d, -y_comp/sqrt_d, x_comp/sqrt_d, y_comp/sqrt_d};
+        arma::colvec bottom_H_mat {-1, y_comp/d, -x_comp/d, -y_comp/d, x_comp/d};
+        arma::mat H_mat = arma::join_cols(top_H_mat, bottom_H_mat);
+        return H_mat;
+    }
+
+    // Compute Kalman
+    arma::mat EKF::compute_kalman_gain(arma::mat H_mat, arma::mat sigma_mat) const
+    {
+        arma::mat inner_prod = H_mat*sigma_mat*H_mat.t() + mR_cov;
+        arma::mat kalman_gain = sigma_mat*H_mat.t()*inner_prod.i();
+        return kalman_gain;
+    }
+
+    //Update functions
+    void EKF::update_poses(int id, arma::mat kalman_gain, arma::colvec est_measure, arma::colvec real_measure)
+    {
+        //Build state vector
+        arma::colvec state_vec = build_state_vector(id);
+        //Get updated 
+        arma::colvec updated_state_vec = state_vec + (kalman_gain*(real_measure - est_measure));
+        //Parse it out
+        // Update state pose
+        mPose_vec = updated_state_vec.subvec(0,2);
+        double mx = updated_state_vec(3);
+        double my = updated_state_vec(4);
+        //Update landmark pose
+        mLandmark_pose_map[id] = std::make_tuple(mx, my);
+
+    }
+
+    void EKF::update_covarances(int id, arma::mat kalman_gain, arma::mat H_mat, arma::mat sigma_mat)
+    {
+        arma::mat identity(5,5, arma::fill::eye);
+        arma::mat updated_cov = (identity - (kalman_gain*H_mat))*sigma_mat;
+        //Parse it out
+        //Update state covariance
+        mPose_cov = updated_cov.submat(0, 0, 2, 2);
+        double elem0 = updated_cov(3, 3);
+        double elem1 = updated_cov(3, 4);
+        double elem2 = updated_cov(4, 3);
+        double elem3 = updated_cov(4, 4);
+        //Update landmark covarience
+        mLandmark_cov_map[id] = std::make_tuple(elem0, elem1, elem2, elem3);
+    }
+
+    // Polar conversions
+    double get_polar_range(double rel_x, double rel_y)
+    {
+        return std::sqrt(std::pow(rel_x, 2.0) + std::pow(rel_y, 2.0));
+    }
+
+    double get_polar_bearing(double rel_x, double rel_y)
+    {
+        return std::atan2(rel_y, rel_x);
+    }
+   
 }
