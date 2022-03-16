@@ -43,6 +43,9 @@
 #include <vector>
 //3rd-party includes
 #include "geometry_msgs/TransformStamped.h"
+#include "geometry_msgs/Pose.h"
+#include "geometry_msgs/PoseStamped.h"
+#include "nav_msgs/Path.h"
 #include "nusim/Teleport.h"
 #include "nuturtlebot_msgs/SensorData.h"
 #include "nuturtlebot_msgs/WheelCommands.h"
@@ -255,7 +258,7 @@ void prep_fake_sensor(const ros::TimerEvent&)
         reading.scale.y = cylin.scale.y;
         reading.scale.z = cylin.scale.z;
         // Make sensor reading green for visualization
-        reading.color.r = 0;
+        reading.color.r = 1;
         reading.color.g = 1;
         reading.color.b = 0;
         reading.color.a = 1.0;
@@ -531,14 +534,19 @@ int main(int argc, char *argv[])
 
 
     //Build ROS Objects
+    //Publishers
     const auto timestep_pub = nh.advertise<std_msgs::UInt64>("timestep", QUEUE_SIZE);
     const auto encoder_pub = pub_nh.advertise<nuturtlebot_msgs::SensorData>("red/sensor_data", QUEUE_SIZE);
     const auto cylinder_pub = nh.advertise<visualization_msgs::MarkerArray>("obstacles", QUEUE_SIZE, true);
     const auto walls_pub = nh.advertise<visualization_msgs::MarkerArray>("walls", QUEUE_SIZE, true);
     const auto laser_pub = pub_nh.advertise<sensor_msgs::LaserScan>("lidar", 100, true);
+    const auto path_pub = nh.advertise<nav_msgs::Path>("sim_path",QUEUE_SIZE, true);
+    //Subscribers
     const auto wheel_cmd_sub = pub_nh.subscribe("red/wheel_cmd", QUEUE_SIZE, wheel_cmd_handler);
+    //Services
     const auto reset_srv = nh.advertiseService("reset", reset);
     const auto teleport_srv = nh.advertiseService("teleport", teleport);
+    //Timers
     const auto laser_time = nh.createTimer(ros::Duration(0.2), prep_laser_sensor);
     geometry_msgs::TransformStamped ts;
 
@@ -698,7 +706,12 @@ int main(int argc, char *argv[])
     laserscan.range_min = laser_min_range;
     laserscan.range_max = laser_max_range;
     
-
+    //Init Sim Path
+    nav_msgs::Path sim_path;
+    sim_path.header.frame_id = "world";
+    double past_x = diff_drive.location().x;
+    double past_y = diff_drive.location().y;
+    double past_theta = diff_drive.theta();
     //Main loop
     while(ros::ok())
     {
@@ -742,6 +755,35 @@ int main(int argc, char *argv[])
             laserscan.ranges = laser_ranges;
             laser_pub.publish(laserscan);     
         }
+
+        // Sim path publishing
+        if(!turtlelib::almost_equal(past_x, diff_drive.location().x) ||
+            !turtlelib::almost_equal(past_y, diff_drive.location().y) ||
+            !turtlelib::almost_equal(past_theta, diff_drive.theta()))
+        {
+            //Update past reference pts
+            past_x = diff_drive.location().x;
+            past_y = diff_drive.location().y;
+            //Create new pose
+            geometry_msgs::Pose new_pose{};
+            new_pose.position.x = diff_drive.location().x;
+            new_pose.position.y = diff_drive.location().y;
+            tf2::Quaternion qp;
+            qp.setRPY(0, 0, diff_drive.theta());
+            new_pose.orientation.x = qp.x();
+            new_pose.orientation.y = qp.y();
+            new_pose.orientation.z = qp.z();
+            new_pose.orientation.w = qp.w();
+            
+            //Create new pose stamped
+            geometry_msgs::PoseStamped new_pose_stamped{};
+            new_pose_stamped.pose = new_pose;
+            sim_path.header.stamp = ros::Time::now();
+            new_pose_stamped.header = sim_path.header;
+            sim_path.poses.push_back(new_pose_stamped);
+            path_pub.publish(sim_path);
+        }
+
         //Grab data
         ros::spinOnce();
 
