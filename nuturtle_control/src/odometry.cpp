@@ -29,7 +29,7 @@
 ///
 /// BROADCASTER:
 ///     broadcaster (non-static odom_id to body_id): Transformation matrix from odom_id frame
-///         to oody_id frame
+///         to body_id frame
 
 
 //RKS
