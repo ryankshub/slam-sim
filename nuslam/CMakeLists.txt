@@ -8,7 +8,10 @@ project(nuslam)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  message_generation
+  nuturtle_control
   roscpp
+  std_msgs
   tf2
   tf2_ros
 )
@@ -69,10 +72,11 @@ find_package(Armadillo)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  nuturtle_control
+  std_msgs  # Or other packages containing msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -106,9 +110,10 @@ find_package(Armadillo)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES nuslam
-   CATKIN_DEPENDS roscpp
+   CATKIN_DEPENDS message_runtime nuturtle_control roscpp std_msgs
 #  DEPENDS system_lib
 )
+
 
 ###########
 ## Build ##

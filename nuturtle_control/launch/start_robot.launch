@@ -24,6 +24,7 @@
         <node pkg="nuturtle_control" type="odometry" name="pure_odometry">
             <param name="body_id" value="blue-base_footprint"/>
             <param name="odom_id" value="world"/>
+            <param name="odom_type" value="pure"/>
         </node>
         <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface"/>
         <!--Static Publisher-->
@@ -69,6 +70,7 @@
         <node pkg="nuturtle_control" type="odometry" name="pure_odometry" machine="turtlebot">
             <param name="body_id" value="blue-base_footprint"/>
             <param name="odom_id" value="world"/>
+            <param name="odom_type" value="pure"/>
         </node>
 
         <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface" machine="turtlebot"/>
@@ -77,7 +79,7 @@
                 args="0 0 0 0 0 0 world odom" unless="$(arg slammin)"/>
         <node pkg="tf2_ros" type="static_transform_publisher" name="world_map_broadcaster" 
                 args="0 0 0 0 0 0 world map" if="$(arg slammin)"/>
-                
+
         <!-- Params -->
         <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
         <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>

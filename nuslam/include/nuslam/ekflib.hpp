@@ -60,8 +60,9 @@ namespace EKF_DD
         /// \brief Create a state vector with robot's pose and 
         /// landmark's pose
         /// \param id - landmark's id
+        /// \param predicted_pose - predicted pose
         /// \return column vector of [robot_pose landmark_pose]
-        arma::colvec build_state_vector(int id) const;
+        arma::colvec build_state_vector(int id, arma::colvec predicted_pose) const;
 
         /// \brief Return the landmark's position
         /// \return A column vector (mx1, my1, .... mxn, myn)
@@ -97,8 +98,9 @@ namespace EKF_DD
 
         /// \brief Build sigma matrix for particular landmark
         /// \param id - Landmark id
-        /// \return - 5 by 5 sigma matrix with robot's and landmark cov
-        arma::mat build_sigma_mat(int id) const;
+        /// \param predicted_cov - predicted covariance
+        /// \return - 5 by 5 sigma matrix with predicted robot's cov and landmark cov
+        arma::mat build_sigma_mat(int id, arma::mat predicted_cov) const;
 
         /// \brief Build H matrix for particular landmark
         /// \param id - Landmark id
@@ -114,10 +116,11 @@ namespace EKF_DD
         /// \brief Update the pose of the robot and the landmark
         /// matching the measurement
         /// \param id - Landmark id
+        /// \param predicted_pose - predicted pose of robot
         /// \param kalman_gain - Kalman gain
         /// \param est_measure - estimated measurement based on predicted state
         /// \param real_measure - measure from sensor data
-        void update_poses(int id, arma::mat kalman_gain, arma::colvec est_measure, arma::colvec real_measure);
+        void update_poses(int id, arma::colvec predicted_pose, arma::mat kalman_gain, arma::colvec est_measure, arma::colvec real_measure);
 
         /// \brief Update the convariance of the robot and landmark
         /// matching the measurement

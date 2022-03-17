@@ -15,12 +15,11 @@
     </include>
 
     <!-- Nodes -->
-    <node pkg="nuturtle_control" type="odometry" name="slam_odometry">
+    <node pkg="nuslam" type="nuslam" name="nuslam">
         <param name="body_id" value="green-base_footprint"/>
         <param name="odom_id" value="odom"/>
+        <param name="odom_type" value="slam"/>
     </node>
-
-    <node pkg="nuslam" type="nuslam" name="nuslam"/>
 
     <!-- Slam Robot-->
     <param name="green/robot_description" 
@@ -31,5 +30,5 @@
 
     <!-- Open Rviz-->
     <node pkg="rviz" type="rviz" name="rviz" required="true" if="$(arg use_rviz)"
-        args="-d $(find nuturtle_control)/config/odom.rviz"/>
+        args="-d $(find nuslam)/config/slam.rviz"/>
 </launch>

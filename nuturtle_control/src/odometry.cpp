@@ -62,6 +62,7 @@ static const std::uint32_t QUEUE_SIZE = 1000;
 static const double DEFAULT_X = 0.0;
 static const double DEFAULT_Y = 0.0;
 static const double DEFAULT_THETA = 0.0;
+static const std::string DEFAULT_TYPE = "pure";
 
 
 //Odometry's Variables
@@ -120,6 +121,7 @@ int main(int argc, char *argv[])
     //Get Params
     std::string body_id = "";
     std::string odom_id = "";
+    std::string odom_type = "";
     double wheel_radius = 0.0;
     double track_width = 0.0;
     double x0 = 0.0;
@@ -161,11 +163,11 @@ int main(int argc, char *argv[])
     nh.param("/nusim/x0", x0, DEFAULT_X);
     nh.param("/nusim/y0", y0, DEFAULT_Y);
     nh.param("/nusim/theta0", theta0, DEFAULT_THETA);
-
+    pri_nh.param("odom_type", odom_type, DEFAULT_TYPE);
     //ROS Objects
     const auto state_sub = nh.subscribe("joint_states", QUEUE_SIZE, state_handler);
-    const auto odom_pub = nh.advertise<nav_msgs::Odometry>("odom", QUEUE_SIZE);
-    const auto path_pub = nh.advertise<nav_msgs::Path>("odom_path",QUEUE_SIZE, true);
+    const auto odom_pub = nh.advertise<nav_msgs::Odometry>((odom_type + "/odom"), QUEUE_SIZE);
+    const auto path_pub = nh.advertise<nav_msgs::Path>((odom_type + "/odom_path"),QUEUE_SIZE, true);
     const auto pose_srv = nh.advertiseService("set_pose", pose_service);
     geometry_msgs::TransformStamped Tob;
 
