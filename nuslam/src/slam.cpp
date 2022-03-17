@@ -122,7 +122,6 @@ void evoke_sim_slam(EKF_DD::EKF & ekf_slam, turtlelib::DiffDrive & dd,
     // //Update diffdrive
     arma::colvec new_pose = ekf_slam.get_current_pose();
     dd.set_configuration(new_pose(0), new_pose(1), new_pose(2));
-    ROS_WARN_STREAM("NEW POSE " << predicted_pose);
 }
 
 
