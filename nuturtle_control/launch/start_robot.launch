@@ -5,6 +5,7 @@
     <arg name="robot" default="nusim" doc="Whether the robot is running in simulation or real world"/>
     <arg name="use_rviz" default="true" doc="Set true to display rviz"/>
     <arg name="noiseless" default="false" doc="Set true to run robot without noise"/>
+    <arg name="slammin" default="false" doc="Set true if running with slam. This will create a static transform from world to map"/>
 
     <!-- Parse cmd_src -->
     <group if="$(eval cmd_src == 'circle')">
@@ -20,12 +21,16 @@
     <!-- Nusim running-->
     <group if="$(eval robot == 'nusim')">
         <!--Nodes-->
-        <node pkg="nuturtle_control" type="odometry" name="odometry"/>
+        <node pkg="nuturtle_control" type="odometry" name="pure_odometry">
+            <param name="body_id" value="blue-base_footprint"/>
+            <param name="odom_id" value="world"/>
+        </node>
         <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface"/>
         <!--Static Publisher-->
         <node pkg="tf2_ros" type="static_transform_publisher" name="world_odom_broadcaster" 
-                args="0 0 0 0 0 0 world odom"/>
-
+                args="0 0 0 0 0 0 world odom" unless="$(arg slammin)"/>
+        <node pkg="tf2_ros" type="static_transform_publisher" name="world_map_broadcaster" 
+                args="0 0 0 0 0 0 world map" if="$(arg slammin)"/>
         <!-- Nusim -->
         <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
         <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
@@ -44,10 +49,8 @@
         </group>
 
         <!--Params for odometry-->
-        <param name="body_id" value="blue-base_footprint"/>
         <param name="wheel_left" value="blue-wheel_left_joint"/>
         <param name="wheel_right" value="blue-wheel_right_joint"/>
-        <param name="odom_id" value="odom"/>
         
         <!--Robots-->
         <param name="red/robot_description" 
@@ -63,18 +66,23 @@
     <!-- Localhost and turtlebot -->
     <group if="$(eval (robot != 'nusim') and (robot != 'none'))">
         <!--Nodes-->
-        <node pkg="nuturtle_control" type="odometry" name="odometry" machine="turtlebot"/>
+        <node pkg="nuturtle_control" type="odometry" name="pure_odometry" machine="turtlebot">
+            <param name="body_id" value="blue-base_footprint"/>
+            <param name="odom_id" value="world"/>
+        </node>
+
         <node pkg="nuturtle_control" type="turtle_interface" name="turtle_interface" machine="turtlebot"/>
         <!--Static Publisher-->
         <node pkg="tf2_ros" type="static_transform_publisher" name="world_odom_broadcaster" 
-                args="0 0 0 0 0 0 world odom"/>
+                args="0 0 0 0 0 0 world odom" unless="$(arg slammin)"/>
+        <node pkg="tf2_ros" type="static_transform_publisher" name="world_map_broadcaster" 
+                args="0 0 0 0 0 0 world map" if="$(arg slammin)"/>
+                
         <!-- Params -->
         <rosparam command="load" file="$(find nusim)/config/basic_world.yaml"/>
         <rosparam command="load" file="$(find nuturtle_description)/config/diff_params.yaml"/>
-        <param name="body_id" value="blue-base_footprint"/>
         <param name="wheel_left" value="blue-wheel_left_joint"/>
         <param name="wheel_right" value="blue-wheel_right_joint"/>
-        <param name="odom_id" value="odom"/>
         <!--Robots-->
         <param name="robot_description" 
             command="xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:='blue'"/>

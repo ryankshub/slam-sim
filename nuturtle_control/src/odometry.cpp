@@ -113,6 +113,7 @@ int main(int argc, char *argv[])
 {
     //Setup Node
     ros::init(argc, argv, "odometry");
+    ros::NodeHandle pri_nh("~");
     ros::NodeHandle nh;
     tf2_ros::TransformBroadcaster br;
 
@@ -137,13 +138,13 @@ int main(int argc, char *argv[])
         return(1); //return 1 to indicate error
     }
 
-    if (!nh.getParam("body_id", body_id))
+    if (!pri_nh.getParam("body_id", body_id))
     {
         ROS_ERROR_STREAM("Odometry: Cannot find body_id"); 
         return(1); //return 1 to indicate error
     }  
 
-    nh.param("odom_id", odom_id, DEFAULT_ODOM);
+    pri_nh.param("odom_id", odom_id, DEFAULT_ODOM);
 
     if (!nh.getParam("wheel_left", wheel_left))
     {

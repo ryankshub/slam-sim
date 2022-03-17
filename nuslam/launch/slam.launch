@@ -1,3 +1,35 @@
 <!-- Launch file for slam algorithm node -->
 <launch>
+    <!-- Arguments -->
+    <arg name="robot" default="nusim" doc="Whether the robot is running in simulation or real world"/>
+    <arg name="noiseless" default="false" doc="Set true to run robot without noise"/>
+    <arg name="use_rviz" default="true" doc="Set true to display rviz"/>
+    
+    <!-- Includes -->
+    <include file="$(find nuturtle_control)/launch/start_robot.launch">
+        <arg name="use_rviz" value="false"/>
+        <arg name="robot" value="$(arg robot)"/>
+        <!-- <arg name="cmd_src" value="teleop"/> -->
+        <arg name="noiseless" value="$(arg noiseless)"/>
+        <arg name="slammin" value="true"/>
+    </include>
+
+    <!-- Nodes -->
+    <node pkg="nuturtle_control" type="odometry" name="slam_odometry">
+        <param name="body_id" value="green-base_footprint"/>
+        <param name="odom_id" value="odom"/>
+    </node>
+
+    <node pkg="nuslam" type="nuslam" name="nuslam"/>
+
+    <!-- Slam Robot-->
+    <param name="green/robot_description" 
+        command="xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:='green'"/>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" ns="green"/>
+    <node pkg="joint_state_publisher" type="joint_state_publisher" 
+        name="joint_state_publisher" ns="green"/>
+
+    <!-- Open Rviz-->
+    <node pkg="rviz" type="rviz" name="rviz" required="true" if="$(arg use_rviz)"
+        args="-d $(find nuturtle_control)/config/odom.rviz"/>
 </launch>
