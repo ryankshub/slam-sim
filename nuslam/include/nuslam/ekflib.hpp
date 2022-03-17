@@ -67,6 +67,10 @@ namespace EKF_DD
         /// \return A column vector (mx1, my1, .... mxn, myn)
         std::map<int, std::tuple<double, double>> get_current_landmarks() const;
 
+        /// \brief Check if landmark is a new landmark
+        /// \return true if landmark is new.
+        bool is_new_landmark(int id) const;
+
         /// \brief Update the pose vector for prediction
         /// \param odom_twist - input body twist of the robot
         arma::colvec predict_pose_vec(turtlelib::Twist2D odom_twist) const;

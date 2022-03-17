@@ -47,11 +47,6 @@ namespace EKF_DD
         return mPose_vec;
     }
 
-    std::map<int, std::tuple<double, double>> EKF::get_current_landmarks() const
-    {
-        return mLandmark_pose_map;
-    }
-
     arma::colvec EKF::build_state_vector(int id) const
     {
         std::tuple<double, double> landmark_pt = mLandmark_pose_map.at(id);
@@ -60,6 +55,16 @@ namespace EKF_DD
         arma::colvec landcol{mx, my};
         arma::colvec statevec = arma::join_cols(mPose_vec, landcol);
         return statevec;
+    }
+
+    std::map<int, std::tuple<double, double>> EKF::get_current_landmarks() const
+    {
+        return mLandmark_pose_map;
+    }
+
+    bool EKF::is_new_landmark(int id) const
+    {
+        return (mLandmark_pose_map.count(id) == 1) && (mLandmark_cov_map.count(id) == 1);
     }
 
     // Prediciton Functions

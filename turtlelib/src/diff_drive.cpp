@@ -100,6 +100,18 @@ namespace turtlelib {
         return *this;
     }
 
+    //DiffDrive set left wheel position
+    DiffDrive & DiffDrive::set_left_wheel_pos(double ang_rad)
+    {
+        mLw_rad = normalize_angle(ang_rad);
+    }
+
+    //DiffDrive set right wheel position
+    DiffDrive & DiffDrive::set_right_wheel_pos(double ang_rad)
+    {
+        mRw_rad = normalize_angle(ang_rad);
+    }
+
     //DiffDrive apply fw kinematics
     DiffDrive & DiffDrive::apply_fw_kin(const double left_pos, const double right_pos)
     {

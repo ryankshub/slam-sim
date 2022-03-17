@@ -50,7 +50,6 @@
 #include "nuturtlebot_msgs/SensorData.h"
 #include "nuturtlebot_msgs/WheelCommands.h"
 #include "ros/ros.h"
-#include "sensor_msgs/JointState.h"
 #include "sensor_msgs/LaserScan.h"
 #include "std_msgs/UInt64.h"
 #include "std_srvs/Empty.h"

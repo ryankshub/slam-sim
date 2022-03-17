@@ -68,6 +68,14 @@ namespace turtlelib {
         /// \throw - invalid_argument if wheel_track or wheel_radius is <= 0
         DiffDrive & set_wheel_config(const double wheel_track, const double wheel_radius);
 
+        /// \brief set the angle of the left wheel
+        /// \param ang_rad - new angle of the wheel in radians
+        DiffDrive & set_left_wheel_pos(double ang_rad);
+
+        /// \brief set the angle of the right wheel
+        /// \param ang_rad - new angle of the wheel in radians
+        DiffDrive & set_right_wheel_pos(double ang_rad);
+
         /// \brief Given new wheel positions, updates the robot's location and angle
         /// \param left_pos - new angle of the left wheel
         /// \param right_pos - new angle of the right wheel
