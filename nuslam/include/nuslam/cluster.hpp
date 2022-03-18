@@ -18,7 +18,7 @@ namespace slam_ml
     /// \param angle_increment - angle increment per each point
     /// \param dist_thres - distance threshold for clusterin
     /// \return clusters of points
-    std::vector<std::vector<std::pair<double, double>>> produce_clusters(std::vector<double> ranges, 
+    std::vector<std::vector<std::pair<double, double>>> produce_clusters(std::vector<float> ranges, 
                                                                             double angle_increment,
                                                                             double dist_thres);
 }

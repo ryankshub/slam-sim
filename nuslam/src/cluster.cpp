@@ -5,15 +5,15 @@
 
 namespace slam_ml
 {
-    std::vector<std::vector<std::pair<double, double>>> produce_clusters(std::vector<double> ranges, 
+    std::vector<std::vector<std::pair<double, double>>> produce_clusters(std::vector<float> ranges, 
                                                                         double angle_increment,
                                                                         double dist_thres)
     {
         //init
         unsigned long int max_index = ranges.size()-1;
         std::vector<std::vector<std::pair<double, double>>> clusters{};
-        double prev_x = ranges.at(0);
-        double prev_y = 0;
+        double prev_x = static_cast<double>(ranges.at(0));
+        double prev_y = 0.0;
         std::vector<std::pair<double, double>> cluster{};
         cluster.push_back(std::pair<double, double>{prev_x, prev_y});
 
@@ -21,8 +21,8 @@ namespace slam_ml
         for (unsigned long int i = 1; i < ranges.size(); i++)
         {
             //Get x and y
-            double x = ranges.at(i)*std::cos(turtlelib::normalize_angle(i*angle_increment));
-            double y = ranges.at(i)*std::sin(turtlelib::normalize_angle(i*angle_increment));
+            double x = static_cast<double>(ranges.at(i)*std::cos(turtlelib::normalize_angle(i*angle_increment)));
+            double y = static_cast<double>(ranges.at(i)*std::sin(turtlelib::normalize_angle(i*angle_increment)));
             //Vector of prev_x,y to x,y
             turtlelib::Vector2D vec{prev_x - x, prev_y - y};
             //Feed current cluster
@@ -39,8 +39,8 @@ namespace slam_ml
             prev_y = y;
             
             if (i == max_index){
-                double first_x = ranges.at(0);
-                double first_y = 0;
+                double first_x = static_cast<double>(ranges.at(0));
+                double first_y = 0.0;
                 turtlelib::Vector2D{first_x - x, first_y - y};
                 if (turtlelib::magnitude(vec) <= dist_thres)
                 {

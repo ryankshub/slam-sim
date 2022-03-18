@@ -190,6 +190,7 @@ target_link_libraries(test_main
 )
 
 add_executable(${PROJECT_NAME} src/slam.cpp)
+add_executable(nuslam_landmark src/landmarks.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -199,21 +200,26 @@ add_executable(${PROJECT_NAME} src/slam.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+add_dependencies(nuslam_landmark ${nuslam_landmark_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ekflib
   turtlelib
 )
+target_link_libraries(nuslam_landmark
+  ${catkin_LIBRARIES}
+  slam_ml
+  turtlelib
+)
 
 # Compiler options
 # enable C++ 17
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17) 
-
+target_compile_features(nuslam_landmark PUBLIC cxx_std_17) 
 # warnings are your friend!
 target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
-
+target_compile_options(nuslam_landmark PUBLIC -Wall -Wextra)
 #############
 ## Install ##
 #############
@@ -236,7 +242,7 @@ target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
-install(TARGETS ekflib ${PROJECT_NAME}
+install(TARGETS ekflib ${PROJECT_NAME} slam_ml nuslam_landmark
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
