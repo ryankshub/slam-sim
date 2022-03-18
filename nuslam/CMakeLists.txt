@@ -72,11 +72,11 @@ find_package(Armadillo)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  nuturtle_control
-  std_msgs  # Or other packages containing msgs
-)
+# generate_messages(
+#   DEPENDENCIES
+#   nuturtle_control
+#   std_msgs  # Or other packages containing msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -149,6 +149,28 @@ target_link_libraries(ekflib
   turtlelib
 )
 
+## Declare a C++ library
+add_library(slam_ml
+  src/cluster.cpp
+)
+
+## Include directories for target
+target_include_directories(slam_ml PUBLIC include/)
+
+# Configure Compiler
+target_compile_features(slam_ml PUBLIC cxx_std_17) 
+target_compile_options(slam_ml PUBLIC -Wall -Wextra)
+
+# add dependencies
+add_dependencies(slam_ml ${slam_ml_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+# Link libraries
+target_link_libraries(slam_ml
+  ${catkin_LIBRARIES}
+  ${ARMADILLO_LIBRARIES}
+  turtlelib
+)
+
 
 
 ## Add cmake target dependencies of the library
@@ -161,7 +183,11 @@ target_link_libraries(ekflib
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/nuslam_node.cpp)
 add_executable(test_main src/test_main.cpp)
-target_link_libraries(test_main ${ARMADILLO_LIBRARIES})
+target_link_libraries(test_main 
+  ${ARMADILLO_LIBRARIES} 
+  slam_ml
+  turtlelib
+)
 
 add_executable(${PROJECT_NAME} src/slam.cpp)
 ## Rename C++ executable without prefix
