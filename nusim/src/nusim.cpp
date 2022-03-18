@@ -538,7 +538,7 @@ int main(int argc, char *argv[])
     const auto encoder_pub = pub_nh.advertise<nuturtlebot_msgs::SensorData>("red/sensor_data", QUEUE_SIZE);
     const auto cylinder_pub = nh.advertise<visualization_msgs::MarkerArray>("obstacles", QUEUE_SIZE, true);
     const auto walls_pub = nh.advertise<visualization_msgs::MarkerArray>("walls", QUEUE_SIZE, true);
-    const auto laser_pub = pub_nh.advertise<sensor_msgs::LaserScan>("lidar", 100, true);
+    const auto laser_pub = pub_nh.advertise<sensor_msgs::LaserScan>("scan", 100, true);
     const auto path_pub = nh.advertise<nav_msgs::Path>("sim_path",QUEUE_SIZE, true);
     //Subscribers
     const auto wheel_cmd_sub = pub_nh.subscribe("red/wheel_cmd", QUEUE_SIZE, wheel_cmd_handler);
