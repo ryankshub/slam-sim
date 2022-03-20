@@ -9,7 +9,7 @@
     <include file="$(find nuturtle_control)/launch/start_robot.launch">
         <arg name="use_rviz" value="false"/>
         <arg name="robot" value="$(arg robot)"/>
-        <!-- <arg name="cmd_src" value="teleop"/> -->
+        <arg name="cmd_src" value="teleop"/>
         <arg name="noiseless" value="$(arg noiseless)"/>
         <arg name="slammin" value="true"/>
     </include>

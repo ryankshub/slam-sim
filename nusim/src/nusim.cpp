@@ -10,17 +10,42 @@
 ///     obstacles/obs_x: List of x position for cylinder obstacles (m)
 ///     obstacles/obs_y: List of y position for cylinder obstacles (m)
 ///     obstacles/radius: Radius of the cylinder obstacles (m)
+///     dist/vel_mean: Mean of Wheel Command noise. Simulates changes in velocity 
+///         wheel vel despite commanded speed 
+///     dist/vel_variance: Standard deviation of Wheel Command noise.
+///     dist/slip_min: Minimum value of slip to apply to wheel position
+///     dist/slip_max: Maximum value of slip to apply to wheel position
+///     sensor/basic_sensor_variance: Standard deviation of sensor noise
+///         for fake landmark sensor
+///     sensor/max_range: Max detection range of fake landmark sensor. If 
+///         a landmark is outside of this range, it will not be detected
+///     laser/min_angle: Starting angle of lidar sensor
+///     laser/max_angle: Ending angle of lidar sensor
+///     laser/min_range: Minimum distance for lidar scan
+///     laser/max_range: Maximum distance for lidar scan
+///     laser/resolution_range: Resolution of laser scan
+///     laser/angle_samples: Number of samples to make between min_angle and max_angle
+///     laser/noise_mean: Mean of a detected obstacles noise
+///     laser/noise_dev: Standard deviation of a detectd obstacle noise
 ///     red_space (bool): True if certain params are found in red namespace.
 ///     arena_x_length(double): X length of the arena
 ///     arena_y_length(double): Y length of the arena
+///  public:
 ///     wheel_radius(double, required): radius of the robot's wheels
 ///     track_width (double, required): distance between the robot's wheels 
 ///     motor_cmd_to_rads(double, required): Conversion rate from ticks/secs to rad/sec  
+///     collision_radius: Radius of robot's collision bubble
 /// PUBLISHES:
 ///     nusim/timestep (std_msgs::UInt64): The timestep of the simulation
+///     red/sensor_data (nuturtlebot_msgs::SensorData): 
 ///     nusim/obstacles (visualization_msgs::MarkerArray): The list of cylinder Marker obstacles to 
 ///         display in rviz
 ///     nusim/walls (visualization_msgs::MarkerArray): The walls of the arena
+///     scan (sensor_msgs::LaserScan): Simulated lider data
+///     nusim/sim_path (nav_msgs::Path): Path of the simulated robot
+///     fake_sensor (visualization_msgs::MarkerArray): noisy simulated obstacles
+/// SUBSCRIBER:
+///     red/wheel_cmd (nuturtlebot_msgs::WheelCommands): Commanded wheel speeds
 /// BROADCASTER:
 ///     broadcaster (non-static world to red-base_footprint): Transformation matrix from world frame
 ///         to red-base_footprint frame

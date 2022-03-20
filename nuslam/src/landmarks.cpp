@@ -2,11 +2,12 @@
 /// \brief Reads the laser sensor and produces the relative location of the landmarks
 ///
 /// PARAMETERS:
-///
+///     cluster_threshold: maximum distance between points in a cluster(m)
 /// PUBLISHES:
-///
+///     landmarks (visualization_msgs::MarkerArray) : locations of obstacles based 
+///         on clustering lidar scan results
 /// SUBSCRIBERS:
-///
+///     scan (sensor_msgs::LaserScan): Lidar scan 
 /// SERVICES:
 ///
 /// BROADCASTER:

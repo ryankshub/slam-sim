@@ -2,6 +2,8 @@
 /// \brief The Slam node drives a robot using the ekf filter and odometry
 ///
 /// PARAMETERS:
+///   odom_type (string): namespace of odometry calculation
+///   sim_slam: true if running slam with fake sensor data instead of lidar data
 ///   wheel_radius(double, required): radius of the robot's wheels
 ///   track_width (double, required): distance between the robot's wheels 
 ///   body_id (string, required): Name of the body frame of the robot (Required)
@@ -15,12 +17,12 @@
 ///   nusim/theta0 (double, default 0): Starting angle position of the turtlebot
 ///     Read from nusim in case position is different from origin
 /// PUBLISHES:
-///     odom (nav_mags::Odometry): publishes the robot's pose in the odometry frame
-///
+///     (arg odom_type)/odom (nav_mags::Odometry): publishes the robot's pose in the odometry frame
+///     (arg odom_type)/odom_path (nav_msgs::Path): Path of the slam robot
 /// SUBSCRIBERS:
 ///     joint_states (sensor_msgs::JointState): listens for the encoder position and wheel 
 ///         angular speeds of the robot
-///
+///     fake_sensor (visualization_msgs::MarkerArray): obstacles' location for landmarks from fake sensor(non-lidar)
 /// SERVICES:
 ///     set_pose (nuturtle_control::PoseConfig): given the x, y, and theta of new configuration,
 ///         teleport the robot to that position
@@ -67,6 +69,8 @@ static const std::string DEFAULT_TYPE = "slam";
 
 //Slam's Variables
 static bool sim_slam;
+static bool new_measurement = false;
+static visualization_msgs::MarkerArray slam_obstacles;
 static turtlelib::DiffDrive Dodom;
 static turtlelib::DiffDrive slam_drive;
 static turtlelib::Twist2D body_twist;
@@ -168,28 +172,62 @@ bool pose_service(nuturtle_control::PoseConfig::Request &req,
 /// \param msg - contains relative x and y of obstacles in range 
 void sim_sensor_handler(const visualization_msgs::MarkerArray& msg)
 {
+    visualization_msgs::MarkerArray temp_obstacles;
+
     for(visualization_msgs::Marker obs: msg.markers)
     {
-        //Check measurement
-        if (obs.action == visualization_msgs::Marker::DELETE)
+        //Check measurement in range
+        if (obs.action != visualization_msgs::Marker::DELETE)
         {
-            continue; //Marker out of range
+            //Get measurement
+            double mx = obs.pose.position.x;
+            double my = obs.pose.position.y;
+            int mid = obs.id;
+            //Get new position from odometry angle
+            double left_wheel = Dodom.left_wheel_pos();
+            double right_wheel = Dodom.right_wheel_pos();
+            //Get Input
+            turtlelib::Twist2D input_twist = slam_drive.cal_fw_kin(left_wheel, right_wheel);
+            slam_drive.set_left_wheel_pos(left_wheel);
+            slam_drive.set_right_wheel_pos(right_wheel);
+            //Call Slam
+            evoke_sim_slam(ekf_filter, Dodom, mx, my, mid, input_twist);
+            slam_drive.set_configuration(Dodom.theta(), Dodom.location().x, Dodom.location().y);
         }
 
-        //Get measurement
-        double mx = obs.pose.position.x;
-        double my = obs.pose.position.y;
-        int mid = obs.id;
-        //Get new position from odometry angle
-        double left_wheel = Dodom.left_wheel_pos();
-        double right_wheel = Dodom.right_wheel_pos();
-        //Get Input
-        turtlelib::Twist2D input_twist = slam_drive.cal_fw_kin(left_wheel, right_wheel);
-        slam_drive.set_left_wheel_pos(left_wheel);
-        slam_drive.set_right_wheel_pos(right_wheel);
-        //Call Slam
-        evoke_sim_slam(ekf_filter, Dodom, mx, my, mid, input_twist);
-        slam_drive.set_configuration(Dodom.theta(), Dodom.location().x, Dodom.location().y);
+        //Update Current Slam position
+        //Fill out basic infomation
+        visualization_msgs::Marker slam_obs;
+        slam_obs.header.stamp = ros::Time::now();
+        slam_obs.header.frame_id = "map";
+        slam_obs.ns = "slam_obs"; 
+        slam_obs.id = obs.id;
+        slam_obs.type = visualization_msgs::Marker::CYLINDER;
+        slam_obs.action = obs.action;
+        slam_obs.pose.position.x = std::get<0>(ekf_filter.get_current_landmarks().at(obs.id));
+        slam_obs.pose.position.y = std::get<1>(ekf_filter.get_current_landmarks().at(obs.id));
+        slam_obs.pose.position.z = obs.pose.position.z;
+        slam_obs.pose.orientation.x = 0;
+        slam_obs.pose.orientation.y = 0;
+        slam_obs.pose.orientation.z = 0;
+        slam_obs.pose.orientation.w = 1;
+        slam_obs.scale.x = obs.scale.x;
+        slam_obs.scale.y = obs.scale.y;
+        slam_obs.scale.z = obs.scale.z;
+        // Make sensor obstacle green for visualization
+        slam_obs.color.r = 0;
+        slam_obs.color.g = 1;
+        slam_obs.color.b = 0;
+        slam_obs.color.a = 1.0;
+        //Check if marker in range
+        //Update obstacle
+        temp_obstacles.markers.push_back(slam_obs);        
+    }
+
+    slam_obstacles = temp_obstacles;
+    if (!slam_obstacles.markers.empty())
+    {
+        new_measurement = true;
     }
 
 }
@@ -258,6 +296,7 @@ int main(int argc, char *argv[])
     //Publishers
     const auto odom_pub = nh.advertise<nav_msgs::Odometry>((odom_type + "/odom"), QUEUE_SIZE);
     const auto path_pub = nh.advertise<nav_msgs::Path>((odom_type + "/odom_path"),QUEUE_SIZE, true);
+    const auto obs_pub = nh.advertise<visualization_msgs::MarkerArray>("slam_obs", 100, true);
     //Subscribers
     const auto fake_sensor_sub = nh.subscribe("fake_sensor", QUEUE_SIZE, sim_sensor_handler);
     const auto state_sub = nh.subscribe("joint_states", QUEUE_SIZE, state_handler);
@@ -385,8 +424,16 @@ int main(int argc, char *argv[])
             path_pub.publish(odom_path);
         }
 
+
+        //Publish location of markers
+        if(new_measurement)
+        {
+            new_measurement = false;
+            obs_pub.publish(slam_obstacles);
+        }
+
         loop_rate.sleep();
     }
+
     return(0);
 }
-
