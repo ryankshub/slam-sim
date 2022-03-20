@@ -55,7 +55,7 @@ TEST_CASE("Odometry Test: Set Pose", "[turtle_odom_test_node]")
     ros::NodeHandle nh;
 
     //Make ROS objects
-    const auto odom_sub = nh.subscribe("odom", QUEUE_SIZE, odom_handler);
+    const auto odom_sub = nh.subscribe("pure/odom", QUEUE_SIZE, odom_handler);
     auto pose_client = nh.serviceClient<nuturtle_control::PoseConfig>("set_pose");
 
     //Set up Rate object
@@ -138,7 +138,7 @@ TEST_CASE("Test transform from odom to base_footprint", "[turtle_odom_test_node]
     nh.param("odom_id", odom_id, DEFAULT_ODOM);
 
     //Make ROS objects
-    const auto odom_sub = nh.subscribe("odom", QUEUE_SIZE, odom_handler);
+    const auto odom_sub = nh.subscribe("pure/odom", QUEUE_SIZE, odom_handler);
     auto pose_client = nh.serviceClient<nuturtle_control::PoseConfig>("set_pose");
     tf2_ros::Buffer tfBuffer;
     tf2_ros::TransformListener tfListener(tfBuffer);
