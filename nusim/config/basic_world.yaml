@@ -21,7 +21,7 @@ nusim:
   # Obstacle detection noise
   sensor:
     basic_sensor_variance: 0.01 # Std_dev for obstacle position
-    max_range: 1.2              # Max range to see obstacle
+    max_range: 2.0              # Max range to see obstacle
   # Laser Sensor Specs
   laser:
     min_range: 0.120            # minimum distance laser can detect object

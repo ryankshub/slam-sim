@@ -182,12 +182,6 @@ target_link_libraries(slam_ml
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/nuslam_node.cpp)
-add_executable(test_main src/test_main.cpp)
-target_link_libraries(test_main 
-  ${ARMADILLO_LIBRARIES} 
-  slam_ml
-  turtlelib
-)
 
 add_executable(${PROJECT_NAME} src/slam.cpp)
 add_executable(nuslam_landmark src/landmarks.cpp)
