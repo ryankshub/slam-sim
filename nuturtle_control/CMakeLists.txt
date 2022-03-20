@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(nuturtle_control)
-
+#catkin_lint: ignore wrong_bin_install_destination
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 

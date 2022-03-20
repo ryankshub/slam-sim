@@ -2,13 +2,16 @@
 
     <!-- Add test parameters -->
     <rosparam command="load" file="$(find nuturtle_control)/test/config/test_params.yaml"/>
-    <node pkg="nuturtle_control" type="odometry" name="odometry" output="screen"/>
-    <test test-name="test_odometry" pkg="nuturtle_control" type="test_odometry"/>
+    <node pkg="nuturtle_control" type="odometry" name="odometry" output="screen">
+        <param name="body_id" value="black-base-footprint"/>
+    </node>
+    <test test-name="test_odometry" pkg="nuturtle_control" type="test_odometry">
+        <param name="body_id" value="black-base-footprint"/>
+    </test>
     <!-- Set up joint state publisher-->
     <param name="robot_description" command="xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro"/>
     <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher"/>
     <!-- Set params for odom -->
-    <param name="body_id" value="black-base-footprint"/>
     <param name="wheel_left" value="black-wheel_left_joint"/>
     <param name="wheel_right" value="black-wheel_right_joint"/>
 </launch>

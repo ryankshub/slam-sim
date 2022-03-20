@@ -124,12 +124,13 @@ TEST_CASE("Test transform from odom to base_footprint", "[turtle_odom_test_node]
 {
     //Setup Node
     ros::NodeHandle nh;
+    ros::NodeHandle pri_nh("~");
 
     //get Param
     std::string body_id = "";
     std::string odom_id = "";
 
-    if (!nh.getParam("body_id", body_id))
+    if (!pri_nh.getParam("body_id", body_id))
     {
         ROS_ERROR_STREAM("Cannot find body_id"); 
         REQUIRE(false); //return 1 to indicate error
